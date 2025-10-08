@@ -147,25 +147,6 @@ export default function UserManagement() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  {!hasWorkerRole && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => assignRole(profile.id, "worker")}
-                    >
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Assign Worker
-                    </Button>
-                  )}
-                  {hasWorkerRole && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => removeRole(profile.id, "worker")}
-                    >
-                      Remove Worker
-                    </Button>
-                  )}
                   {!hasAdminRole && (
                     <Button
                       size="sm"
