@@ -5,8 +5,10 @@ import { DashboardStats } from "@/components/DashboardStats";
 import { MedicineTable } from "@/components/MedicineTable";
 import { AddMedicineDialog } from "@/components/AddMedicineDialog";
 import { TransactionDialog } from "@/components/TransactionDialog";
+import UserManagement from "@/components/UserManagement";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Activity, LogOut } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
@@ -16,6 +18,7 @@ const Index = () => {
   const { toast } = useToast();
   const [session, setSession] = useState<Session | null>(null);
   const [hasWorkerRole, setHasWorkerRole] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,8 +53,10 @@ const Index = () => {
         if (error) {
           console.error("Error checking role:", error);
           setHasWorkerRole(false);
+          setIsAdmin(false);
         } else {
           setHasWorkerRole(data && data.length > 0);
+          setIsAdmin(data?.some((r) => r.role === "admin") || false);
         }
         setLoading(false);
       };
@@ -131,18 +136,36 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <div className="space-y-8">
-          {/* Stats Section */}
-          <section>
-            <h2 className="text-xl font-semibold mb-4">Overview</h2>
-            <DashboardStats />
-          </section>
-
-          {/* Inventory Table */}
-          <section>
-            <MedicineTable />
-          </section>
-        </div>
+        {isAdmin ? (
+          <Tabs defaultValue="inventory" className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="inventory">Inventory</TabsTrigger>
+              <TabsTrigger value="users">User Management</TabsTrigger>
+            </TabsList>
+            <TabsContent value="inventory" className="space-y-8">
+              <section>
+                <h2 className="text-xl font-semibold mb-4">Overview</h2>
+                <DashboardStats />
+              </section>
+              <section>
+                <MedicineTable />
+              </section>
+            </TabsContent>
+            <TabsContent value="users">
+              <UserManagement />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <div className="space-y-8">
+            <section>
+              <h2 className="text-xl font-semibold mb-4">Overview</h2>
+              <DashboardStats />
+            </section>
+            <section>
+              <MedicineTable />
+            </section>
+          </div>
+        )}
       </main>
     </div>
   );
