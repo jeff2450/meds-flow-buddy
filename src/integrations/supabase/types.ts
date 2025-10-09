@@ -35,6 +35,50 @@ export type Database = {
         }
         Relationships: []
       }
+      medicine_sales: {
+        Row: {
+          created_at: string
+          id: string
+          medicine_id: string
+          notes: string | null
+          quantity_sold: number
+          sale_date: string
+          total_amount: number | null
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          medicine_id: string
+          notes?: string | null
+          quantity_sold: number
+          sale_date: string
+          total_amount?: number | null
+          unit_price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          medicine_id?: string
+          notes?: string | null
+          quantity_sold?: number
+          sale_date?: string
+          total_amount?: number | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicine_sales_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medicines: {
         Row: {
           category_id: string | null

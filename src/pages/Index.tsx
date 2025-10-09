@@ -2,6 +2,8 @@ import { DashboardStats } from "@/components/DashboardStats";
 import { MedicineTable } from "@/components/MedicineTable";
 import { AddMedicineDialog } from "@/components/AddMedicineDialog";
 import { TransactionDialog } from "@/components/TransactionDialog";
+import { SalesRecordDialog } from "@/components/SalesRecordDialog";
+import { SalesTable } from "@/components/SalesTable";
 import UserManagement from "@/components/UserManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Activity } from "lucide-react";
@@ -28,6 +30,7 @@ const Index = () => {
               </div>
             </div>
             <div className="flex gap-3">
+              <SalesRecordDialog />
               <TransactionDialog type="intake" />
               <TransactionDialog type="outtake" />
               <AddMedicineDialog />
@@ -41,6 +44,7 @@ const Index = () => {
         <Tabs defaultValue="inventory" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="inventory">Inventory</TabsTrigger>
+            <TabsTrigger value="sales">Sales</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
           </TabsList>
           <TabsContent value="inventory" className="space-y-8">
@@ -51,6 +55,9 @@ const Index = () => {
             <section>
               <MedicineTable />
             </section>
+          </TabsContent>
+          <TabsContent value="sales" className="space-y-8">
+            <SalesTable />
           </TabsContent>
           <TabsContent value="users">
             <UserManagement />
