@@ -5,7 +5,7 @@ import { TransactionDialog } from "@/components/TransactionDialog";
 import { SalesTable } from "@/components/SalesTable";
 import UserManagement from "@/components/UserManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, DollarSign } from "lucide-react";
+import { Activity, DollarSign, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -32,6 +32,10 @@ const Index = () => {
               </div>
             </div>
             <div className="flex gap-3">
+              <Button variant="outline" onClick={() => navigate("/monthly-report")}>
+                <FileText className="h-4 w-4 mr-2" />
+                Monthly Report
+              </Button>
               <Button onClick={() => navigate("/sales-recording")}>
                 <DollarSign className="h-4 w-4 mr-2" />
                 Record Sales
