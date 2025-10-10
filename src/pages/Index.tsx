@@ -2,13 +2,15 @@ import { DashboardStats } from "@/components/DashboardStats";
 import { MedicineTable } from "@/components/MedicineTable";
 import { AddMedicineDialog } from "@/components/AddMedicineDialog";
 import { TransactionDialog } from "@/components/TransactionDialog";
-import { SalesRecordDialog } from "@/components/SalesRecordDialog";
 import { SalesTable } from "@/components/SalesTable";
 import UserManagement from "@/components/UserManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity } from "lucide-react";
+import { Activity, DollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
@@ -30,9 +32,11 @@ const Index = () => {
               </div>
             </div>
             <div className="flex gap-3">
-              <SalesRecordDialog />
+              <Button onClick={() => navigate("/sales-recording")}>
+                <DollarSign className="h-4 w-4 mr-2" />
+                Record Sales
+              </Button>
               <TransactionDialog type="intake" />
-              <TransactionDialog type="outtake" />
               <AddMedicineDialog />
             </div>
           </div>
