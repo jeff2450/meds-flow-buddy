@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -10,9 +11,12 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Package, Search } from "lucide-react";
+import { format } from "date-fns";
 
 export const MedicineTable = () => {
+  const [searchQuery, setSearchQuery] = useState("");
   const { data: medicines, isLoading } = useQuery({
     queryKey: ["medicines-with-categories"],
     queryFn: async () => {
@@ -28,6 +32,15 @@ export const MedicineTable = () => {
       if (error) throw error;
       return data;
     },
+  });
+
+  const filteredMedicines = medicines?.filter((medicine) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      medicine.name.toLowerCase().includes(searchLower) ||
+      medicine.folio_number?.toLowerCase().includes(searchLower) ||
+      medicine.medicine_categories?.name.toLowerCase().includes(searchLower)
+    );
   });
 
   if (isLoading) {
@@ -53,6 +66,15 @@ export const MedicineTable = () => {
           <Package className="h-5 w-5" />
           Medicine Inventory
         </CardTitle>
+        <div className="relative mt-4">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search by name, folio, or category..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="rounded-md border">
@@ -65,18 +87,19 @@ export const MedicineTable = () => {
                 <TableHead>Current Stock</TableHead>
                 <TableHead>Unit</TableHead>
                 <TableHead>Min. Level</TableHead>
+                <TableHead>Entry Date</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {medicines?.length === 0 ? (
+              {!filteredMedicines || filteredMedicines.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">
-                    No medicines found. Add your first medicine to get started.
+                  <TableCell colSpan={8} className="text-center text-muted-foreground">
+                    {searchQuery ? "No medicines match your search." : "No medicines found. Add your first medicine to get started."}
                   </TableCell>
                 </TableRow>
               ) : (
-                medicines?.map((medicine) => {
+                filteredMedicines.map((medicine) => {
                   const isLowStock = medicine.current_stock <= medicine.min_stock_level;
                   return (
                     <TableRow key={medicine.id}>
@@ -88,6 +111,9 @@ export const MedicineTable = () => {
                       <TableCell>{medicine.current_stock}</TableCell>
                       <TableCell>{medicine.unit}</TableCell>
                       <TableCell>{medicine.min_stock_level}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {format(new Date(medicine.created_at), "MMM dd, yyyy")}
+                      </TableCell>
                       <TableCell>
                         {isLowStock ? (
                           <Badge variant="destructive">Low Stock</Badge>

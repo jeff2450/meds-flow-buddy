@@ -26,7 +26,6 @@ import { toast } from "sonner";
 export const AddMedicineDialog = () => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const [folioNumber, setFolioNumber] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [unit, setUnit] = useState("units");
   const [minStockLevel, setMinStockLevel] = useState("10");
@@ -52,11 +51,21 @@ export const AddMedicineDialog = () => {
       return;
     }
 
+    // Get next folio number from sequence
+    const { data: seqData, error: seqError } = await supabase.rpc('get_next_folio_number');
+    
+    if (seqError) {
+      toast.error("Failed to generate folio number");
+      return;
+    }
+
+    const folioNumber = `F-${seqData}`;
+
     const { error } = await supabase
       .from("medicines")
       .insert({
         name,
-        folio_number: folioNumber || null,
+        folio_number: folioNumber,
         category_id: categoryId,
         unit,
         min_stock_level: parseInt(minStockLevel),
@@ -73,7 +82,6 @@ export const AddMedicineDialog = () => {
     
     // Reset form
     setName("");
-    setFolioNumber("");
     setCategoryId("");
     setUnit("units");
     setMinStockLevel("10");
@@ -105,15 +113,9 @@ export const AddMedicineDialog = () => {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Paracetamol 500mg"
               />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="folioNumber">Folio Number</Label>
-              <Input
-                id="folioNumber"
-                value={folioNumber}
-                onChange={(e) => setFolioNumber(e.target.value)}
-                placeholder="e.g., F-1001 (auto-generated if empty)"
-              />
+              <p className="text-xs text-muted-foreground">
+                Folio number will be auto-generated
+              </p>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="category">Category *</Label>

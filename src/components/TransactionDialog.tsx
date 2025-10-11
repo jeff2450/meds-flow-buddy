@@ -31,7 +31,6 @@ interface TransactionDialogProps {
 export const TransactionDialog = ({ type }: TransactionDialogProps) => {
   const [open, setOpen] = useState(false);
   const [medicineId, setMedicineId] = useState("");
-  const [folioNumber, setFolioNumber] = useState("");
   const [quantity, setQuantity] = useState("");
   const [notes, setNotes] = useState("");
   const queryClient = useQueryClient();
@@ -56,19 +55,6 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
       return;
     }
 
-    // If intake and folio number provided, update the medicine's folio
-    if (type === "intake" && folioNumber) {
-      const { error: updateError } = await supabase
-        .from("medicines")
-        .update({ folio_number: folioNumber })
-        .eq("id", medicineId);
-
-      if (updateError) {
-        toast.error("Failed to update folio number");
-        return;
-      }
-    }
-
     const { error } = await supabase
       .from("stock_transactions")
       .insert({
@@ -90,7 +76,6 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
     
     // Reset form
     setMedicineId("");
-    setFolioNumber("");
     setQuantity("");
     setNotes("");
     setOpen(false);
@@ -145,7 +130,6 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
                     <SelectItem 
                       key={medicine.id} 
                       value={medicine.id}
-                      onClick={() => setFolioNumber(medicine.folio_number || "")}
                     >
                       {medicine.folio_number ? `[${medicine.folio_number}] ` : ""}{medicine.name} (Stock: {medicine.current_stock} {medicine.unit})
                     </SelectItem>
@@ -153,17 +137,6 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
                 </SelectContent>
               </Select>
             </div>
-            {isIntake && (
-              <div className="grid gap-2">
-                <Label htmlFor="folioNumber">Folio Number</Label>
-                <Input
-                  id="folioNumber"
-                  value={folioNumber}
-                  onChange={(e) => setFolioNumber(e.target.value)}
-                  placeholder="Assign folio number"
-                />
-              </div>
-            )}
             <div className="grid gap-2">
               <Label htmlFor="quantity">Quantity *</Label>
               <Input
