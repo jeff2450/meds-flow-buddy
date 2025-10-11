@@ -209,7 +209,7 @@ const SalesRecording = () => {
                         <SelectContent>
                           {medicines?.map((medicine) => (
                             <SelectItem key={medicine.id} value={medicine.id}>
-                              {medicine.name}
+                              {medicine.folio_number ? `[${medicine.folio_number}] ` : ""}{medicine.name}
                             </SelectItem>
                           ))}
                         </SelectContent>

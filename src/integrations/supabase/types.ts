@@ -84,6 +84,7 @@ export type Database = {
           category_id: string | null
           created_at: string
           current_stock: number
+          folio_number: string | null
           id: string
           min_stock_level: number
           name: string
@@ -94,6 +95,7 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           current_stock?: number
+          folio_number?: string | null
           id?: string
           min_stock_level?: number
           name: string
@@ -104,6 +106,7 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           current_stock?: number
+          folio_number?: string | null
           id?: string
           min_stock_level?: number
           name?: string

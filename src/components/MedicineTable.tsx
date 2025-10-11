@@ -59,6 +59,7 @@ export const MedicineTable = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Folio #</TableHead>
                 <TableHead>Medicine Name</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Current Stock</TableHead>
@@ -70,7 +71,7 @@ export const MedicineTable = () => {
             <TableBody>
               {medicines?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center text-muted-foreground">
                     No medicines found. Add your first medicine to get started.
                   </TableCell>
                 </TableRow>
@@ -79,6 +80,7 @@ export const MedicineTable = () => {
                   const isLowStock = medicine.current_stock <= medicine.min_stock_level;
                   return (
                     <TableRow key={medicine.id}>
+                      <TableCell className="font-mono text-xs">{medicine.folio_number || "N/A"}</TableCell>
                       <TableCell className="font-medium">{medicine.name}</TableCell>
                       <TableCell>
                         {medicine.medicine_categories?.name || "Uncategorized"}

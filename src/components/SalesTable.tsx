@@ -32,7 +32,8 @@ export function SalesTable() {
           *,
           medicines (
             name,
-            unit
+            unit,
+            folio_number
           )
         `)
         .order("sale_date", { ascending: false })
@@ -150,6 +151,7 @@ export function SalesTable() {
                   <TableRow key={sale.id}>
                     <TableCell>{format(new Date(sale.sale_date), "MMM dd, yyyy")}</TableCell>
                     <TableCell className="font-medium">
+                      {sale.medicines?.folio_number && `[${sale.medicines.folio_number}] `}
                       {sale.medicines?.name || "Unknown"}
                     </TableCell>
                     <TableCell className="text-right">

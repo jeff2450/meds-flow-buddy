@@ -26,6 +26,7 @@ import { toast } from "sonner";
 export const AddMedicineDialog = () => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
+  const [folioNumber, setFolioNumber] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [unit, setUnit] = useState("units");
   const [minStockLevel, setMinStockLevel] = useState("10");
@@ -55,6 +56,7 @@ export const AddMedicineDialog = () => {
       .from("medicines")
       .insert({
         name,
+        folio_number: folioNumber || null,
         category_id: categoryId,
         unit,
         min_stock_level: parseInt(minStockLevel),
@@ -71,6 +73,7 @@ export const AddMedicineDialog = () => {
     
     // Reset form
     setName("");
+    setFolioNumber("");
     setCategoryId("");
     setUnit("units");
     setMinStockLevel("10");
@@ -101,6 +104,15 @@ export const AddMedicineDialog = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Paracetamol 500mg"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="folioNumber">Folio Number</Label>
+              <Input
+                id="folioNumber"
+                value={folioNumber}
+                onChange={(e) => setFolioNumber(e.target.value)}
+                placeholder="e.g., F-1001 (auto-generated if empty)"
               />
             </div>
             <div className="grid gap-2">
