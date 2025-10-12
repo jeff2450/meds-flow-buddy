@@ -51,15 +51,22 @@ export const AddMedicineDialog = () => {
       return;
     }
 
-    // Get next folio number from sequence
-    const { data: seqData, error: seqError } = await supabase.rpc('get_next_folio_number');
-    
-    if (seqError) {
-      toast.error("Failed to generate folio number");
-      return;
-    }
+    // Get the latest folio number to generate the next one
+    const { data: latestMedicine } = await supabase
+      .from("medicines")
+      .select("folio_number")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
 
-    const folioNumber = `F-${seqData}`;
+    let nextFolioNum = 1001;
+    if (latestMedicine?.folio_number) {
+      const match = latestMedicine.folio_number.match(/F-(\d+)/);
+      if (match) {
+        nextFolioNum = parseInt(match[1]) + 1;
+      }
+    }
+    const folioNumber = `F-${nextFolioNum}`;
 
     const { error } = await supabase
       .from("medicines")
