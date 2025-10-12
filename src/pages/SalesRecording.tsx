@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
@@ -25,6 +25,8 @@ interface SaleEntry {
   quantity: string;
   unitPrice: string;
   notes: string;
+  saved?: boolean;
+  dbId?: string;
 }
 
 const SalesRecording = () => {
@@ -36,6 +38,7 @@ const SalesRecording = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const autoSaveTimers = useRef<Record<string, NodeJS.Timeout>>({});
 
   const { data: medicines } = useQuery({
     queryKey: ["medicines"],
@@ -65,9 +68,77 @@ const SalesRecording = () => {
 
   const updateEntry = (id: string, field: keyof SaleEntry, value: string) => {
     setSalesEntries(salesEntries.map(entry =>
-      entry.id === id ? { ...entry, [field]: value } : entry
+      entry.id === id ? { ...entry, [field]: value, saved: false } : entry
     ));
+    
+    // Trigger auto-save after 1.5 seconds of no changes
+    if (autoSaveTimers.current[id]) {
+      clearTimeout(autoSaveTimers.current[id]);
+    }
+    
+    autoSaveTimers.current[id] = setTimeout(() => {
+      autoSaveEntry(id);
+    }, 1500);
   };
+
+  const autoSaveEntry = async (entryId: string) => {
+    const entry = salesEntries.find(e => e.id === entryId);
+    if (!entry || !entry.medicineId || !entry.quantity || !entry.unitPrice) {
+      return;
+    }
+
+    try {
+      const saleData = {
+        medicine_id: entry.medicineId,
+        sale_date: format(selectedDate, "yyyy-MM-dd"),
+        quantity_sold: parseInt(entry.quantity),
+        unit_price: parseFloat(entry.unitPrice),
+        notes: entry.notes || null,
+      };
+
+      if (entry.dbId) {
+        // Update existing record
+        const { error } = await supabase
+          .from("medicine_sales")
+          .update(saleData)
+          .eq("id", entry.dbId);
+        
+        if (error) throw error;
+      } else {
+        // Insert new record
+        const { data, error } = await supabase
+          .from("medicine_sales")
+          .insert(saleData)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        
+        // Update entry with database ID
+        setSalesEntries(prev => prev.map(e =>
+          e.id === entryId ? { ...e, dbId: data.id, saved: true } : e
+        ));
+        
+        queryClient.invalidateQueries({ queryKey: ["medicine-sales"] });
+        return;
+      }
+
+      setSalesEntries(prev => prev.map(e =>
+        e.id === entryId ? { ...e, saved: true } : e
+      ));
+      
+      queryClient.invalidateQueries({ queryKey: ["medicine-sales"] });
+    } catch (error: any) {
+      console.error("Auto-save error:", error);
+    }
+  };
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(autoSaveTimers.current).forEach(timer => clearTimeout(timer));
+    };
+  }, []);
 
   const calculateTotal = () => {
     return salesEntries.reduce((sum, entry) => {
@@ -182,7 +253,15 @@ const SalesRecording = () => {
               {salesEntries.map((entry, index) => (
                 <div key={entry.id} className="p-4 border rounded-lg space-y-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">Entry {index + 1}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">Entry {index + 1}</h3>
+                      {entry.saved && (
+                        <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Auto-saved
+                        </span>
+                      )}
+                    </div>
                     {salesEntries.length > 1 && (
                       <Button
                         type="button"
@@ -283,10 +362,7 @@ const SalesRecording = () => {
               onClick={() => navigate("/")}
               disabled={loading}
             >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Recording..." : "Record All Sales"}
+              Back to Dashboard
             </Button>
           </div>
         </form>
