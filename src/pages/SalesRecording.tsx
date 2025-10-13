@@ -19,6 +19,32 @@ import { ArrowLeft, Plus, Trash2, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
+// Auth check
+const useSalesRecordingAuth = () => {
+  const navigate = useNavigate();
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigate("/auth");
+      } else {
+        setAuthChecked(true);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
+        navigate("/auth");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  return authChecked;
+};
+
 interface SaleEntry {
   id: string;
   medicineId: string;
@@ -30,6 +56,7 @@ interface SaleEntry {
 }
 
 const SalesRecording = () => {
+  const authChecked = useSalesRecordingAuth();
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [salesEntries, setSalesEntries] = useState<SaleEntry[]>([
@@ -39,6 +66,10 @@ const SalesRecording = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const autoSaveTimers = useRef<Record<string, NodeJS.Timeout>>({});
+
+  if (!authChecked) {
+    return null;
+  }
 
   const { data: medicines } = useQuery({
     queryKey: ["medicines"],

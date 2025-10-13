@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import SalesRecording from "./pages/SalesRecording";
 import MonthlyReport from "./pages/MonthlyReport";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +18,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<Index />} />
           <Route path="/sales-recording" element={<SalesRecording />} />
           <Route path="/monthly-report" element={<MonthlyReport />} />

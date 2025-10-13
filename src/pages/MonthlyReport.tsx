@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,9 +28,32 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 const MonthlyReport = () => {
   const navigate = useNavigate();
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigate("/auth");
+      } else {
+        setAuthChecked(true);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
+        navigate("/auth");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const monthStart = startOfMonth(selectedMonth);
   const monthEnd = endOfMonth(selectedMonth);
+
+  if (!authChecked) {
+    return null;
+  }
 
   // Fetch sales data for the selected month
   const { data: salesData, isLoading: salesLoading } = useQuery({
