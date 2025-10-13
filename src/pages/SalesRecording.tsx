@@ -46,6 +46,7 @@ const SalesRecording = () => {
       const { data, error } = await supabase
         .from("medicines")
         .select("*")
+        .gt("current_stock", 0)
         .order("name");
       
       if (error) throw error;
@@ -148,26 +149,24 @@ const SalesRecording = () => {
     }, 0);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const saveDailySales = async () => {
     setLoading(true);
 
     try {
-      const validEntries = salesEntries.filter(
-        entry => entry.medicineId && entry.quantity && entry.unitPrice
+      const unsavedEntries = salesEntries.filter(
+        entry => entry.medicineId && entry.quantity && entry.unitPrice && !entry.saved
       );
 
-      if (validEntries.length === 0) {
+      if (unsavedEntries.length === 0) {
         toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Please add at least one valid sale entry.",
+          title: "All saved",
+          description: "All entries are already saved.",
         });
         setLoading(false);
         return;
       }
 
-      const salesData = validEntries.map(entry => ({
+      const salesData = unsavedEntries.map(entry => ({
         medicine_id: entry.medicineId,
         sale_date: format(selectedDate, "yyyy-MM-dd"),
         quantity_sold: parseInt(entry.quantity),
@@ -175,17 +174,29 @@ const SalesRecording = () => {
         notes: entry.notes || null,
       }));
 
-      const { error } = await supabase.from("medicine_sales").insert(salesData);
+      const { data, error } = await supabase
+        .from("medicine_sales")
+        .insert(salesData)
+        .select();
 
       if (error) throw error;
 
+      // Update entries with saved status and db IDs
+      setSalesEntries(prev => prev.map((entry, index) => {
+        const unsavedIndex = unsavedEntries.findIndex(e => e.id === entry.id);
+        if (unsavedIndex !== -1 && data) {
+          return { ...entry, saved: true, dbId: data[unsavedIndex].id };
+        }
+        return entry;
+      }));
+
       toast({
-        title: "Sales recorded",
-        description: `Successfully recorded ${validEntries.length} sale(s) for ${format(selectedDate, "PPP")}.`,
+        title: "Daily sales saved",
+        description: `Successfully saved ${unsavedEntries.length} entry(s) for ${format(selectedDate, "PPP")}.`,
       });
 
       queryClient.invalidateQueries({ queryKey: ["medicine-sales"] });
-      navigate("/");
+      queryClient.invalidateQueries({ queryKey: ["medicines"] });
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -219,7 +230,7 @@ const SalesRecording = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Select Date</CardTitle>
@@ -288,7 +299,7 @@ const SalesRecording = () => {
                         <SelectContent>
                           {medicines?.map((medicine) => (
                             <SelectItem key={medicine.id} value={medicine.id}>
-                              {medicine.folio_number ? `[${medicine.folio_number}] ` : ""}{medicine.name}
+                              {medicine.folio_number ? `[${medicine.folio_number}] ` : ""}{medicine.name} - Stock: {medicine.current_stock} {medicine.unit}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -364,8 +375,15 @@ const SalesRecording = () => {
             >
               Back to Dashboard
             </Button>
+            <Button
+              type="button"
+              onClick={saveDailySales}
+              disabled={loading}
+            >
+              Save Daily Sales
+            </Button>
           </div>
-        </form>
+        </div>
       </main>
     </div>
   );
