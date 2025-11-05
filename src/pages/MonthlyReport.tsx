@@ -51,10 +51,6 @@ const MonthlyReport = () => {
   const monthStart = startOfMonth(selectedMonth);
   const monthEnd = endOfMonth(selectedMonth);
 
-  if (!authChecked) {
-    return null;
-  }
-
   // Fetch sales data for the selected month
   const { data: salesData, isLoading: salesLoading } = useQuery({
     queryKey: ["monthly-sales", monthStart.toISOString()],
@@ -116,6 +112,10 @@ const MonthlyReport = () => {
   }, {} as Record<string, { name: string; quantity: number; revenue: number }>);
 
   const salesByMedicineArray = Object.values(salesByMedicine || {}).sort((a, b) => b.revenue - a.revenue);
+
+  if (!authChecked) {
+    return null;
+  }
 
   const chartConfig = {
     revenue: {
