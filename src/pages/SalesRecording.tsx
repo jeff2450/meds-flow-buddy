@@ -67,10 +67,6 @@ const SalesRecording = () => {
   const queryClient = useQueryClient();
   const autoSaveTimers = useRef<Record<string, NodeJS.Timeout>>({});
 
-  if (!authChecked) {
-    return null;
-  }
-
   const { data: medicines } = useQuery({
     queryKey: ["medicines"],
     queryFn: async () => {
@@ -171,6 +167,10 @@ const SalesRecording = () => {
       Object.values(autoSaveTimers.current).forEach(timer => clearTimeout(timer));
     };
   }, []);
+
+  if (!authChecked) {
+    return null;
+  }
 
   const calculateTotal = () => {
     return salesEntries.reduce((sum, entry) => {
