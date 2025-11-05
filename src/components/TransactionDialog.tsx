@@ -55,6 +55,15 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
       return;
     }
 
+    // Check stock availability for outtake transactions
+    if (type === "outtake") {
+      const medicine = medicines?.find(m => m.id === medicineId);
+      if (medicine && medicine.current_stock < parseInt(quantity)) {
+        toast.error(`Insufficient stock. Only ${medicine.current_stock} units available.`);
+        return;
+      }
+    }
+
     const { error } = await supabase
       .from("stock_transactions")
       .insert({

@@ -56,6 +56,18 @@ export function SalesRecordDialog() {
     setLoading(true);
 
     try {
+      // Check stock availability
+      const medicine = medicines?.find(m => m.id === medicineId);
+      if (medicine && medicine.current_stock < parseInt(quantity)) {
+        toast({
+          title: "Insufficient Stock",
+          description: `Only ${medicine.current_stock} units of ${medicine.name} available. Cannot sell ${quantity} units.`,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.from("medicine_sales").insert({
         medicine_id: medicineId,
         sale_date: format(selectedDate, "yyyy-MM-dd"),
@@ -79,8 +91,10 @@ export function SalesRecordDialog() {
       setSelectedDate(new Date());
       setOpen(false);
 
-      // Refresh sales data
+      // Refresh sales and medicines data
       queryClient.invalidateQueries({ queryKey: ["medicine-sales"] });
+      queryClient.invalidateQueries({ queryKey: ["medicines"] });
+      queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
     } catch (error: any) {
       toast({
         variant: "destructive",

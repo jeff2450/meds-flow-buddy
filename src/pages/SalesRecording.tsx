@@ -115,6 +115,17 @@ const SalesRecording = () => {
       return;
     }
 
+    // Check stock availability
+    const medicine = medicines?.find(m => m.id === entry.medicineId);
+    if (medicine && medicine.current_stock < parseInt(entry.quantity)) {
+      toast({
+        title: "Insufficient Stock",
+        description: `Only ${medicine.current_stock} units of ${medicine.name} available.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const saleData = {
         medicine_id: entry.medicineId,
@@ -228,6 +239,7 @@ const SalesRecording = () => {
 
       queryClient.invalidateQueries({ queryKey: ["medicine-sales"] });
       queryClient.invalidateQueries({ queryKey: ["medicines"] });
+      queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
     } catch (error: any) {
       toast({
         variant: "destructive",
