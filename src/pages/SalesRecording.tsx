@@ -73,13 +73,37 @@ const SalesRecording = () => {
       const { data, error } = await supabase
         .from("medicines")
         .select("*")
-        .gt("current_stock", 0)
         .order("name");
       
       if (error) throw error;
       return data;
     },
   });
+
+  // Real-time subscription for stock updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('medicines-stock-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'medicines'
+        },
+        (payload) => {
+          console.log('Stock updated:', payload);
+          // Invalidate queries to refresh the data
+          queryClient.invalidateQueries({ queryKey: ["medicines"] });
+          queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const addNewEntry = () => {
     setSalesEntries([
@@ -351,11 +375,35 @@ const SalesRecording = () => {
                           <SelectValue placeholder="Select medicine" />
                         </SelectTrigger>
                         <SelectContent>
-                          {medicines?.map((medicine) => (
-                            <SelectItem key={medicine.id} value={medicine.id}>
-                              {medicine.folio_number ? `[${medicine.folio_number}] ` : ""}{medicine.name} - Stock: {medicine.current_stock} {medicine.unit}
-                            </SelectItem>
-                          ))}
+                          {medicines?.map((medicine) => {
+                            const stockLevel = medicine.current_stock;
+                            const isLowStock = stockLevel <= medicine.min_stock_level;
+                            const isOutOfStock = stockLevel === 0;
+                            
+                            return (
+                              <SelectItem 
+                                key={medicine.id} 
+                                value={medicine.id}
+                                disabled={isOutOfStock}
+                                className={isOutOfStock ? "opacity-50" : ""}
+                              >
+                                <div className="flex items-center justify-between w-full gap-2">
+                                  <span className="flex-1">
+                                    {medicine.folio_number ? `[${medicine.folio_number}] ` : ""}{medicine.name}
+                                  </span>
+                                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                                    isOutOfStock 
+                                      ? "bg-destructive/10 text-destructive" 
+                                      : isLowStock 
+                                      ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400" 
+                                      : "bg-green-500/10 text-green-600 dark:text-green-400"
+                                  }`}>
+                                    {stockLevel} {medicine.unit}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     </div>
