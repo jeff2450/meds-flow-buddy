@@ -115,18 +115,25 @@ const SalesRecording = () => {
       return;
     }
 
-    // Check stock availability
-    const medicine = medicines?.find(m => m.id === entry.medicineId);
-    if (medicine && medicine.current_stock < parseInt(entry.quantity)) {
-      toast({
-        title: "Insufficient Stock",
-        description: `Only ${medicine.current_stock} units of ${medicine.name} available.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
+      // Fetch fresh stock data before saving
+      const { data: freshMedicine, error: fetchError } = await supabase
+        .from("medicines")
+        .select("current_stock, name")
+        .eq("id", entry.medicineId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Check stock availability with fresh data
+      if (freshMedicine && freshMedicine.current_stock < parseInt(entry.quantity)) {
+        toast({
+          title: "Insufficient Stock",
+          description: `Only ${freshMedicine.current_stock} units of ${freshMedicine.name} available.`,
+          variant: "destructive",
+        });
+        return;
+      }
       const saleData = {
         medicine_id: entry.medicineId,
         sale_date: format(selectedDate, "yyyy-MM-dd"),
@@ -159,6 +166,8 @@ const SalesRecording = () => {
         ));
         
         queryClient.invalidateQueries({ queryKey: ["medicine-sales"] });
+        queryClient.invalidateQueries({ queryKey: ["medicines"] });
+        queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
         return;
       }
 
@@ -167,6 +176,8 @@ const SalesRecording = () => {
       ));
       
       queryClient.invalidateQueries({ queryKey: ["medicine-sales"] });
+      queryClient.invalidateQueries({ queryKey: ["medicines"] });
+      queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
     } catch (error: any) {
       console.error("Auto-save error:", error);
     }
