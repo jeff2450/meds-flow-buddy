@@ -146,6 +146,7 @@ export type Database = {
       }
       stock_transactions: {
         Row: {
+          batch_id: string | null
           created_at: string
           id: string
           medicine_id: string
@@ -155,6 +156,7 @@ export type Database = {
           transaction_type: string
         }
         Insert: {
+          batch_id?: string | null
           created_at?: string
           id?: string
           medicine_id: string
@@ -164,6 +166,7 @@ export type Database = {
           transaction_type: string
         }
         Update: {
+          batch_id?: string | null
           created_at?: string
           id?: string
           medicine_id?: string
@@ -209,6 +212,10 @@ export type Database = {
     }
     Functions: {
       get_next_folio_number: { Args: never; Returns: number }
+      get_or_create_batch_id: {
+        Args: { p_medicine_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

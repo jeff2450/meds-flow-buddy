@@ -86,6 +86,22 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
       }
     }
 
+    let batchId = null;
+    
+    // For intake transactions, get or create batch_id
+    if (type === "intake") {
+      const { data: batchData, error: batchError } = await supabase
+        .rpc('get_or_create_batch_id', { p_medicine_id: medicineId });
+      
+      if (batchError) {
+        console.error('Error getting batch ID:', batchError);
+        toast.error('Failed to get batch information');
+        return;
+      }
+      
+      batchId = batchData;
+    }
+
     const { error } = await supabase
       .from("stock_transactions")
       .insert({
@@ -93,6 +109,7 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
         transaction_type: type,
         quantity: parseInt(quantity),
         notes: notes || null,
+        batch_id: batchId,
       });
 
     if (error) {
