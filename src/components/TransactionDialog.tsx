@@ -47,27 +47,6 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
     },
   });
 
-  // Real-time subscription for stock updates
-  useEffect(() => {
-    const channel = supabase
-      .channel('transaction-dialog-stock-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'medicines'
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["medicines"] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,9 +154,7 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
                 </SelectTrigger>
                 <SelectContent>
                   {medicines?.map((medicine) => {
-                    const stockLevel = medicine.current_stock;
-                    const isLowStock = stockLevel <= medicine.min_stock_level;
-                    const isOutOfStock = stockLevel === 0;
+                    const isOutOfStock = medicine.current_stock === 0;
                     
                     return (
                       <SelectItem 
@@ -186,20 +163,7 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
                         disabled={type === "outtake" && isOutOfStock}
                         className={type === "outtake" && isOutOfStock ? "opacity-50" : ""}
                       >
-                        <div className="flex items-center justify-between w-full gap-2">
-                          <span className="flex-1">
-                            {medicine.folio_number ? `[${medicine.folio_number}] ` : ""}{medicine.name}
-                          </span>
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                            isOutOfStock 
-                              ? "bg-destructive/10 text-destructive" 
-                              : isLowStock 
-                              ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400" 
-                              : "bg-green-500/10 text-green-600 dark:text-green-400"
-                          }`}>
-                            {stockLevel} {medicine.unit}
-                          </span>
-                        </div>
+                        {medicine.folio_number ? `[${medicine.folio_number}] ` : ""}{medicine.name}
                       </SelectItem>
                     );
                   })}
