@@ -152,6 +152,7 @@ export type Database = {
           medicine_id: string
           notes: string | null
           quantity: number
+          sub_folio_number: number | null
           transaction_date: string
           transaction_type: string
         }
@@ -162,6 +163,7 @@ export type Database = {
           medicine_id: string
           notes?: string | null
           quantity: number
+          sub_folio_number?: number | null
           transaction_date?: string
           transaction_type: string
         }
@@ -172,6 +174,7 @@ export type Database = {
           medicine_id?: string
           notes?: string | null
           quantity?: number
+          sub_folio_number?: number | null
           transaction_date?: string
           transaction_type?: string
         }
@@ -212,6 +215,10 @@ export type Database = {
     }
     Functions: {
       get_next_folio_number: { Args: never; Returns: number }
+      get_next_sub_folio_number: {
+        Args: { p_medicine_id: string }
+        Returns: number
+      }
       get_or_create_batch_id: {
         Args: { p_medicine_id: string }
         Returns: string

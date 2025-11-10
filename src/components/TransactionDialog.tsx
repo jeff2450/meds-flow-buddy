@@ -86,20 +86,20 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
       }
     }
 
-    let batchId = null;
+    let subFolioNumber = null;
     
-    // For intake transactions, get or create batch_id
+    // For intake transactions, get the next sub-folio number
     if (type === "intake") {
-      const { data: batchData, error: batchError } = await supabase
-        .rpc('get_or_create_batch_id', { p_medicine_id: medicineId });
+      const { data: subFolioData, error: subFolioError } = await supabase
+        .rpc('get_next_sub_folio_number', { p_medicine_id: medicineId });
       
-      if (batchError) {
-        console.error('Error getting batch ID:', batchError);
-        toast.error('Failed to get batch information');
+      if (subFolioError) {
+        console.error('Error getting sub-folio number:', subFolioError);
+        toast.error('Failed to get sub-folio number');
         return;
       }
       
-      batchId = batchData;
+      subFolioNumber = subFolioData;
     }
 
     const { error } = await supabase
@@ -109,7 +109,7 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
         transaction_type: type,
         quantity: parseInt(quantity),
         notes: notes || null,
-        batch_id: batchId,
+        sub_folio_number: subFolioNumber,
       });
 
     if (error) {
