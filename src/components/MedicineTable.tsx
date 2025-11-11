@@ -49,7 +49,7 @@ export const MedicineTable = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Medicine Inventory
+            Medicine Batches
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -64,7 +64,7 @@ export const MedicineTable = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Package className="h-5 w-5" />
-          Medicine Inventory
+          Medicine Batches
         </CardTitle>
         <div className="relative mt-4">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -95,7 +95,7 @@ export const MedicineTable = () => {
               {!filteredMedicines || filteredMedicines.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center text-muted-foreground">
-                    {searchQuery ? "No medicines match your search." : "No medicines found. Add your first medicine to get started."}
+                    {searchQuery ? "No batches match your search." : "No batches found. Record an intake to create your first batch."}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -112,7 +112,7 @@ export const MedicineTable = () => {
                       <TableCell>{medicine.unit}</TableCell>
                       <TableCell>{medicine.min_stock_level}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {format(new Date(medicine.created_at), "MMM dd, yyyy")}
+                        {format(new Date(medicine.entry_date || medicine.created_at), "MMM dd, yyyy")}
                       </TableCell>
                       <TableCell>
                         {isLowStock ? (

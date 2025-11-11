@@ -341,27 +341,27 @@ const SalesRecording = () => {
 
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor={`medicine-${entry.id}`}>Medicine</Label>
+                      <Label htmlFor={`medicine-${entry.id}`}>Medicine Batch</Label>
                       <Select
                         value={entry.medicineId}
                         onValueChange={(value) => updateEntry(entry.id, "medicineId", value)}
                         required
                       >
                         <SelectTrigger id={`medicine-${entry.id}`}>
-                          <SelectValue placeholder="Select medicine" />
+                          <SelectValue placeholder="Select batch" />
                         </SelectTrigger>
                         <SelectContent>
-                          {medicines?.map((medicine) => {
-                            const isOutOfStock = medicine.current_stock === 0;
+                          {medicines?.map((batch) => {
+                            const isOutOfStock = batch.current_stock === 0;
                             
                             return (
                               <SelectItem 
-                                key={medicine.id} 
-                                value={medicine.id}
+                                key={batch.id} 
+                                value={batch.id}
                                 disabled={isOutOfStock}
                                 className={isOutOfStock ? "opacity-50" : ""}
                               >
-                                {medicine.folio_number ? `[${medicine.folio_number}] ` : ""}{medicine.name}
+                                [{batch.folio_number}] {batch.name} - {batch.current_stock} {batch.unit} available
                               </SelectItem>
                             );
                           })}

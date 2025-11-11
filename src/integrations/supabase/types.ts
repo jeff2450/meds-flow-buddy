@@ -84,7 +84,8 @@ export type Database = {
           category_id: string | null
           created_at: string
           current_stock: number
-          folio_number: string | null
+          entry_date: string | null
+          folio_number: string
           id: string
           min_stock_level: number
           name: string
@@ -95,7 +96,8 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           current_stock?: number
-          folio_number?: string | null
+          entry_date?: string | null
+          folio_number: string
           id?: string
           min_stock_level?: number
           name: string
@@ -106,7 +108,8 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           current_stock?: number
-          folio_number?: string | null
+          entry_date?: string | null
+          folio_number?: string
           id?: string
           min_stock_level?: number
           name?: string
@@ -146,35 +149,29 @@ export type Database = {
       }
       stock_transactions: {
         Row: {
-          batch_id: string | null
           created_at: string
           id: string
           medicine_id: string
           notes: string | null
           quantity: number
-          sub_folio_number: number | null
           transaction_date: string
           transaction_type: string
         }
         Insert: {
-          batch_id?: string | null
           created_at?: string
           id?: string
           medicine_id: string
           notes?: string | null
           quantity: number
-          sub_folio_number?: number | null
           transaction_date?: string
           transaction_type: string
         }
         Update: {
-          batch_id?: string | null
           created_at?: string
           id?: string
           medicine_id?: string
           notes?: string | null
           quantity?: number
-          sub_folio_number?: number | null
           transaction_date?: string
           transaction_type?: string
         }
@@ -215,14 +212,6 @@ export type Database = {
     }
     Functions: {
       get_next_folio_number: { Args: never; Returns: number }
-      get_next_sub_folio_number: {
-        Args: { p_medicine_id: string }
-        Returns: number
-      }
-      get_or_create_batch_id: {
-        Args: { p_medicine_id: string }
-        Returns: string
-      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

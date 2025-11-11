@@ -51,52 +51,77 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!medicineId || !quantity) {
-      toast.error("Please fill in all required fields");
+    if (!quantity) {
+      toast.error("Please enter a quantity");
       return;
     }
 
-    // Check stock availability for outtake transactions
-    if (type === "outtake") {
-      const medicine = medicines?.find(m => m.id === medicineId);
-      if (medicine && medicine.current_stock < parseInt(quantity)) {
-        toast.error(`Insufficient stock. Only ${medicine.current_stock} units available.`);
-        return;
-      }
-    }
-
-    let subFolioNumber = null;
-    
-    // For intake transactions, get the next sub-folio number
     if (type === "intake") {
-      const { data: subFolioData, error: subFolioError } = await supabase
-        .rpc('get_next_sub_folio_number', { p_medicine_id: medicineId });
-      
-      if (subFolioError) {
-        console.error('Error getting sub-folio number:', subFolioError);
-        toast.error('Failed to get sub-folio number');
+      // For intake: create a new medicine batch entry
+      if (!medicineId) {
+        toast.error("Please select a medicine template or enter details");
         return;
       }
-      
-      subFolioNumber = subFolioData;
+
+      // Get the template medicine to copy name and category
+      const template = medicines?.find(m => m.id === medicineId);
+      if (!template) {
+        toast.error("Medicine template not found");
+        return;
+      }
+
+      // Create new batch entry (folio number auto-assigned by trigger)
+      const { error: insertError } = await supabase
+        .from("medicines")
+        .insert([{
+          name: template.name,
+          folio_number: '', // Will be auto-assigned by trigger
+          category_id: template.category_id,
+          current_stock: parseInt(quantity),
+          min_stock_level: template.min_stock_level,
+          unit: template.unit,
+          entry_date: new Date().toISOString(),
+        }]);
+
+      if (insertError) {
+        console.error('Error creating batch:', insertError);
+        toast.error("Failed to create new batch");
+        return;
+      }
+
+      toast.success("New batch created successfully");
+    } else {
+      // For outtake: reduce stock from specific batch
+      if (!medicineId) {
+        toast.error("Please select a batch");
+        return;
+      }
+
+      const batch = medicines?.find(m => m.id === medicineId);
+      if (batch && batch.current_stock < parseInt(quantity)) {
+        toast.error(`Insufficient stock. Only ${batch.current_stock} units available in this batch.`);
+        return;
+      }
+
+      // Record outtake transaction (trigger will update stock)
+      const { error } = await supabase
+        .from("stock_transactions")
+        .insert({
+          medicine_id: medicineId,
+          transaction_type: "outtake",
+          quantity: parseInt(quantity),
+          notes: notes || null,
+        });
+
+      if (error) {
+        console.error('Error recording outtake:', error);
+        toast.error("Failed to record outtake");
+        return;
+      }
+
+      toast.success("Stock outtake recorded successfully");
     }
 
-    const { error } = await supabase
-      .from("stock_transactions")
-      .insert({
-        medicine_id: medicineId,
-        transaction_type: type,
-        quantity: parseInt(quantity),
-        notes: notes || null,
-        sub_folio_number: subFolioNumber,
-      });
-
-    if (error) {
-      toast.error(`Failed to record ${type}`);
-      return;
-    }
-
-    toast.success(`${type === "intake" ? "Stock intake" : "Stock outtake"} recorded successfully`);
     queryClient.invalidateQueries({ queryKey: ["medicines"] });
     queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
     queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
@@ -141,32 +166,44 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
             </DialogTitle>
             <DialogDescription>
               {isIntake 
-                ? "Add new stock to your inventory" 
-                : "Remove stock from your inventory"}
+                ? "Create a new batch with its own folio number" 
+                : "Remove stock from a specific batch"}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="medicine">Medicine *</Label>
+              <Label htmlFor="medicine">{isIntake ? "Medicine Template *" : "Select Batch *"}</Label>
               <Select value={medicineId} onValueChange={setMedicineId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select medicine" />
+                  <SelectValue placeholder={isIntake ? "Select medicine to create batch" : "Select batch to reduce"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {medicines?.map((medicine) => {
-                    const isOutOfStock = medicine.current_stock === 0;
-                    
-                    return (
-                      <SelectItem 
-                        key={medicine.id} 
-                        value={medicine.id}
-                        disabled={type === "outtake" && isOutOfStock}
-                        className={type === "outtake" && isOutOfStock ? "opacity-50" : ""}
-                      >
-                        {medicine.folio_number ? `[${medicine.folio_number}] ` : ""}{medicine.name}
-                      </SelectItem>
-                    );
-                  })}
+                  {isIntake ? (
+                    // For intake: show unique medicine names as templates
+                    Array.from(new Set(medicines?.map(m => m.name) || [])).map((name) => {
+                      const medicine = medicines?.find(m => m.name === name);
+                      return medicine ? (
+                        <SelectItem key={medicine.id} value={medicine.id}>
+                          {name}
+                        </SelectItem>
+                      ) : null;
+                    })
+                  ) : (
+                    // For outtake: show all batches with folio numbers
+                    medicines?.map((batch) => {
+                      const isOutOfStock = batch.current_stock === 0;
+                      return (
+                        <SelectItem 
+                          key={batch.id} 
+                          value={batch.id}
+                          disabled={isOutOfStock}
+                          className={isOutOfStock ? "opacity-50" : ""}
+                        >
+                          [{batch.folio_number}] {batch.name} - {batch.current_stock} {batch.unit} available
+                        </SelectItem>
+                      );
+                    })
+                  )}
                 </SelectContent>
               </Select>
             </div>
