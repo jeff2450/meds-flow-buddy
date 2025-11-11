@@ -38,7 +38,6 @@ export const MedicineTable = () => {
     const searchLower = searchQuery.toLowerCase();
     return (
       medicine.name.toLowerCase().includes(searchLower) ||
-      medicine.folio_number?.toLowerCase().includes(searchLower) ||
       medicine.medicine_categories?.name.toLowerCase().includes(searchLower)
     );
   });
@@ -69,7 +68,7 @@ export const MedicineTable = () => {
         <div className="relative mt-4">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search by name, folio, or category..."
+            placeholder="Search by name or category..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -81,7 +80,6 @@ export const MedicineTable = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Folio #</TableHead>
                 <TableHead>Medicine Name</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Current Stock</TableHead>
@@ -94,7 +92,7 @@ export const MedicineTable = () => {
             <TableBody>
               {!filteredMedicines || filteredMedicines.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center text-muted-foreground">
                     {searchQuery ? "No batches match your search." : "No batches found. Record an intake to create your first batch."}
                   </TableCell>
                 </TableRow>
@@ -103,7 +101,6 @@ export const MedicineTable = () => {
                   const isLowStock = medicine.current_stock <= medicine.min_stock_level;
                   return (
                     <TableRow key={medicine.id}>
-                      <TableCell className="font-mono text-xs">{medicine.folio_number || "N/A"}</TableCell>
                       <TableCell className="font-medium">{medicine.name}</TableCell>
                       <TableCell>
                         {medicine.medicine_categories?.name || "Uncategorized"}

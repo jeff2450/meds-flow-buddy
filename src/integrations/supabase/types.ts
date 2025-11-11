@@ -85,7 +85,6 @@ export type Database = {
           created_at: string
           current_stock: number
           entry_date: string | null
-          folio_number: string
           id: string
           min_stock_level: number
           name: string
@@ -97,7 +96,6 @@ export type Database = {
           created_at?: string
           current_stock?: number
           entry_date?: string | null
-          folio_number: string
           id?: string
           min_stock_level?: number
           name: string
@@ -109,7 +107,6 @@ export type Database = {
           created_at?: string
           current_stock?: number
           entry_date?: string | null
-          folio_number?: string
           id?: string
           min_stock_level?: number
           name?: string

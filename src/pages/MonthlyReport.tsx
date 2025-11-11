@@ -61,8 +61,7 @@ const MonthlyReport = () => {
           *,
           medicines (
             name,
-            unit,
-            folio_number
+            unit
           )
         `)
         .gte("sale_date", monthStart.toISOString())
@@ -97,17 +96,15 @@ const MonthlyReport = () => {
   // Group sales by medicine
   const salesByMedicine = salesData?.reduce((acc, sale) => {
     const medicineName = sale.medicines?.name || "Unknown";
-    const folioNumber = sale.medicines?.folio_number;
-    const displayName = folioNumber ? `[${folioNumber}] ${medicineName}` : medicineName;
-    if (!acc[displayName]) {
-      acc[displayName] = {
-        name: displayName,
+    if (!acc[medicineName]) {
+      acc[medicineName] = {
+        name: medicineName,
         quantity: 0,
         revenue: 0,
       };
     }
-    acc[displayName].quantity += sale.quantity_sold || 0;
-    acc[displayName].revenue += Number(sale.total_amount || 0);
+    acc[medicineName].quantity += sale.quantity_sold || 0;
+    acc[medicineName].revenue += Number(sale.total_amount || 0);
     return acc;
   }, {} as Record<string, { name: string; quantity: number; revenue: number }>);
 

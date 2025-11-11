@@ -70,12 +70,11 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
         return;
       }
 
-      // Create new batch entry (folio number auto-assigned by trigger)
+      // Create new batch entry (auto-generated ID)
       const { error: insertError } = await supabase
         .from("medicines")
         .insert([{
           name: template.name,
-          folio_number: '', // Will be auto-assigned by trigger
           category_id: template.category_id,
           current_stock: parseInt(quantity),
           min_stock_level: template.min_stock_level,
@@ -166,7 +165,7 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
             </DialogTitle>
             <DialogDescription>
               {isIntake 
-                ? "Create a new batch with its own folio number" 
+                ? "Create a new independent batch" 
                 : "Remove stock from a specific batch"}
             </DialogDescription>
           </DialogHeader>
@@ -189,7 +188,7 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
                       ) : null;
                     })
                   ) : (
-                    // For outtake: show all batches with folio numbers
+                    // For outtake: show all batches
                     medicines?.map((batch) => {
                       const isOutOfStock = batch.current_stock === 0;
                       return (
@@ -199,7 +198,7 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
                           disabled={isOutOfStock}
                           className={isOutOfStock ? "opacity-50" : ""}
                         >
-                          [{batch.folio_number}] {batch.name} - {batch.current_stock} {batch.unit} available
+                          {batch.name} - {batch.current_stock} {batch.unit} available
                         </SelectItem>
                       );
                     })
