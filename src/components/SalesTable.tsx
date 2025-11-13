@@ -31,8 +31,7 @@ export function SalesTable() {
         .select(`
           *,
           medicines (
-            name,
-            unit
+            name
           )
         `)
         .order("sale_date", { ascending: false })
@@ -153,7 +152,7 @@ export function SalesTable() {
                       {sale.medicines?.name || "Unknown"}
                     </TableCell>
                     <TableCell className="text-right">
-                      {sale.quantity_sold} {sale.medicines?.unit || "units"}
+                      {sale.quantity_sold}
                     </TableCell>
                     <TableCell className="text-right">
                       ${parseFloat(String(sale.unit_price)).toFixed(2)}

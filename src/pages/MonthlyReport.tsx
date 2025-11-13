@@ -60,8 +60,7 @@ const MonthlyReport = () => {
         .select(`
           *,
           medicines (
-            name,
-            unit
+            name
           )
         `)
         .gte("sale_date", monthStart.toISOString())

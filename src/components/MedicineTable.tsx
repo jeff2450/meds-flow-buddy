@@ -83,7 +83,7 @@ export const MedicineTable = () => {
                 <TableHead>Medicine Name</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Current Stock</TableHead>
-                <TableHead>Unit</TableHead>
+                <TableHead>Total Unit</TableHead>
                 <TableHead>Min. Level</TableHead>
                 <TableHead>Entry Date</TableHead>
                 <TableHead>Status</TableHead>
@@ -106,7 +106,7 @@ export const MedicineTable = () => {
                         {medicine.medicine_categories?.name || "Uncategorized"}
                       </TableCell>
                       <TableCell>{medicine.current_stock}</TableCell>
-                      <TableCell>{medicine.unit}</TableCell>
+                      <TableCell>{medicine.total_stock}</TableCell>
                       <TableCell>{medicine.min_stock_level}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {format(new Date(medicine.entry_date || medicine.created_at), "MMM dd, yyyy")}
