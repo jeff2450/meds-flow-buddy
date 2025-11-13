@@ -21,14 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
-interface TransactionDialogProps {
-  type: "intake" | "outtake";
-}
-
-export const TransactionDialog = ({ type }: TransactionDialogProps) => {
+export const TransactionDialog = () => {
   const [open, setOpen] = useState(false);
   const [medicineId, setMedicineId] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -47,7 +43,6 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
     },
   });
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -56,70 +51,37 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
       return;
     }
 
-    if (type === "intake") {
-      // For intake: create a new medicine batch entry
-      if (!medicineId) {
-        toast.error("Please select a medicine template or enter details");
-        return;
-      }
-
-      // Get the template medicine to copy name and category
-      const template = medicines?.find(m => m.id === medicineId);
-      if (!template) {
-        toast.error("Medicine template not found");
-        return;
-      }
-
-      // Create new batch entry (auto-generated ID)
-      const { error: insertError } = await supabase
-        .from("medicines")
-        .insert([{
-          name: template.name,
-          category_id: template.category_id,
-          current_stock: parseInt(quantity),
-          total_stock: parseInt(quantity),
-          min_stock_level: template.min_stock_level,
-          entry_date: new Date().toISOString(),
-        }]);
-
-      if (insertError) {
-        console.error('Error creating batch:', insertError);
-        toast.error("Failed to create new batch");
-        return;
-      }
-
-      toast.success("New batch created successfully");
-    } else {
-      // For outtake: reduce stock from specific batch
-      if (!medicineId) {
-        toast.error("Please select a batch");
-        return;
-      }
-
-      const batch = medicines?.find(m => m.id === medicineId);
-      if (batch && batch.current_stock < parseInt(quantity)) {
-        toast.error(`Insufficient stock. Only ${batch.current_stock} units available in this batch.`);
-        return;
-      }
-
-      // Record outtake transaction (trigger will update stock)
-      const { error } = await supabase
-        .from("stock_transactions")
-        .insert({
-          medicine_id: medicineId,
-          transaction_type: "outtake",
-          quantity: parseInt(quantity),
-          notes: notes || null,
-        });
-
-      if (error) {
-        console.error('Error recording outtake:', error);
-        toast.error("Failed to record outtake");
-        return;
-      }
-
-      toast.success("Stock outtake recorded successfully");
+    if (!medicineId) {
+      toast.error("Please select a medicine template");
+      return;
     }
+
+    // Get the template medicine to copy name and category
+    const template = medicines?.find(m => m.id === medicineId);
+    if (!template) {
+      toast.error("Medicine template not found");
+      return;
+    }
+
+    // Create new batch entry
+    const { error: insertError } = await supabase
+      .from("medicines")
+      .insert([{
+        name: template.name,
+        category_id: template.category_id,
+        current_stock: parseInt(quantity),
+        total_stock: parseInt(quantity),
+        min_stock_level: template.min_stock_level,
+        entry_date: new Date().toISOString(),
+      }]);
+
+    if (insertError) {
+      console.error('Error creating batch:', insertError);
+      toast.error("Failed to create new batch");
+      return;
+    }
+
+    toast.success("New batch created successfully");
 
     queryClient.invalidateQueries({ queryKey: ["medicines"] });
     queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
@@ -132,77 +94,46 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
     setOpen(false);
   };
 
-  const isIntake = type === "intake";
+  useEffect(() => {
+    if (!open) {
+      setMedicineId("");
+      setQuantity("");
+      setNotes("");
+    }
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button 
-          variant="outline"
-          className={isIntake 
-            ? "border-success text-success hover:bg-success/10" 
-            : "border-accent text-accent hover:bg-accent/10"
-          }
-        >
-          {isIntake ? (
-            <>
-              <TrendingUp className="mr-2 h-4 w-4" />
-              Record Intake
-            </>
-          ) : (
-            <>
-              <TrendingDown className="mr-2 h-4 w-4" />
-              Record Outtake
-            </>
-          )}
+        <Button>
+          <TrendingUp className="mr-2 h-4 w-4" />
+          Record Intake
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>
-              {isIntake ? "Record Stock Intake" : "Record Stock Outtake"}
-            </DialogTitle>
+            <DialogTitle>Record Stock Intake</DialogTitle>
             <DialogDescription>
-              {isIntake 
-                ? "Create a new independent batch" 
-                : "Remove stock from a specific batch"}
+              Create a new independent batch from an existing medicine
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="medicine">{isIntake ? "Medicine Template *" : "Select Batch *"}</Label>
+              <Label htmlFor="medicine">Medicine Template *</Label>
               <Select value={medicineId} onValueChange={setMedicineId}>
                 <SelectTrigger>
-                  <SelectValue placeholder={isIntake ? "Select medicine to create batch" : "Select batch to reduce"} />
+                  <SelectValue placeholder="Select medicine to create batch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {isIntake ? (
-                    // For intake: show unique medicine names as templates
-                    Array.from(new Set(medicines?.map(m => m.name) || [])).map((name) => {
-                      const medicine = medicines?.find(m => m.name === name);
-                      return medicine ? (
-                        <SelectItem key={medicine.id} value={medicine.id}>
-                          {name}
-                        </SelectItem>
-                      ) : null;
-                    })
-                  ) : (
-                    // For outtake: show all batches
-                    medicines?.map((batch) => {
-                      const isOutOfStock = batch.current_stock === 0;
-                      return (
-                        <SelectItem 
-                          key={batch.id} 
-                          value={batch.id}
-                          disabled={isOutOfStock}
-                          className={isOutOfStock ? "opacity-50" : ""}
-                        >
-                          {batch.name} - {batch.current_stock} available
-                        </SelectItem>
-                      );
-                    })
-                  )}
+                  {Array.from(new Set(medicines?.map(m => m.name) || [])).map((name) => {
+                    const medicine = medicines?.find(m => m.name === name);
+                    return medicine ? (
+                      <SelectItem key={medicine.id} value={medicine.id}>
+                        {name}
+                      </SelectItem>
+                    ) : null;
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -218,20 +149,25 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes">Notes (Optional)</Label>
               <Textarea
                 id="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Optional notes about this transaction"
+                placeholder="Add any additional notes..."
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">
-              {isIntake ? "Record Intake" : "Record Outtake"}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
+              Cancel
             </Button>
+            <Button type="submit">Record Intake</Button>
           </DialogFooter>
         </form>
       </DialogContent>
