@@ -199,8 +199,8 @@ export function SalesRecordDialog() {
                             : isLowStock 
                             ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400" 
                             : "bg-green-500/10 text-green-600 dark:text-green-400"
-                        }`}>
-                          {stockLevel} {medicine.unit}
+                         }`}>
+                          {stockLevel}
                         </span>
                       </div>
                     </SelectItem>

@@ -77,8 +77,8 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
           name: template.name,
           category_id: template.category_id,
           current_stock: parseInt(quantity),
+          total_stock: parseInt(quantity),
           min_stock_level: template.min_stock_level,
-          unit: template.unit,
           entry_date: new Date().toISOString(),
         }]);
 
@@ -198,7 +198,7 @@ export const TransactionDialog = ({ type }: TransactionDialogProps) => {
                           disabled={isOutOfStock}
                           className={isOutOfStock ? "opacity-50" : ""}
                         >
-                          {batch.name} - {batch.current_stock} {batch.unit} available
+                          {batch.name} - {batch.current_stock} available
                         </SelectItem>
                       );
                     })

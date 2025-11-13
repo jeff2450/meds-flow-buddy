@@ -361,7 +361,7 @@ const SalesRecording = () => {
                                 disabled={isOutOfStock}
                                 className={isOutOfStock ? "opacity-50" : ""}
                               >
-                                {batch.name} - {batch.current_stock} {batch.unit} available
+                                {batch.name} - {batch.current_stock} available
                               </SelectItem>
                             );
                           })}
