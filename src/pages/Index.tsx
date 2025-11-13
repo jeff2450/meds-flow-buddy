@@ -1,6 +1,7 @@
 import { DashboardStats } from "@/components/DashboardStats";
 import { MedicineTable } from "@/components/MedicineTable";
 import { TransactionDialog } from "@/components/TransactionDialog";
+import { AddMedicineDialog } from "@/components/AddMedicineDialog";
 import { SalesTable } from "@/components/SalesTable";
 import UserManagement from "@/components/UserManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -75,8 +76,8 @@ const Index = () => {
                 <DollarSign className="h-4 w-4 mr-2" />
                 Record Sales
               </Button>
-              <TransactionDialog type="intake" />
-              <TransactionDialog type="outtake" />
+              <AddMedicineDialog />
+              <TransactionDialog />
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
