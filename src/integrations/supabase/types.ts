@@ -88,7 +88,7 @@ export type Database = {
           id: string
           min_stock_level: number
           name: string
-          unit: string
+          total_stock: number
           updated_at: string
         }
         Insert: {
@@ -99,7 +99,7 @@ export type Database = {
           id?: string
           min_stock_level?: number
           name: string
-          unit?: string
+          total_stock?: number
           updated_at?: string
         }
         Update: {
@@ -110,7 +110,7 @@ export type Database = {
           id?: string
           min_stock_level?: number
           name?: string
-          unit?: string
+          total_stock?: number
           updated_at?: string
         }
         Relationships: [

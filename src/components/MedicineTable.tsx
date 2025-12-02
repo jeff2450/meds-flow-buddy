@@ -30,7 +30,7 @@ export const MedicineTable = () => {
         `)
         .order("name");
       if (error) throw error;
-      return data;
+      return data as (typeof data[number] & { total_stock: number })[];
     },
   });
 
