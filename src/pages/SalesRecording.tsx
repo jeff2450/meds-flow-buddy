@@ -18,6 +18,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Plus, Trash2, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { salesEntrySchema } from "@/lib/validations";
 
 // Auth check
 const useSalesRecordingAuth = () => {
@@ -115,6 +116,23 @@ const SalesRecording = () => {
       return;
     }
 
+    // Validate entry with zod
+    const result = salesEntrySchema.safeParse({
+      medicineId: entry.medicineId,
+      quantity: parseInt(entry.quantity) || 0,
+      unitPrice: parseFloat(entry.unitPrice) || 0,
+      notes: entry.notes?.trim() || "",
+    });
+
+    if (!result.success) {
+      toast({
+        title: "Validation Error",
+        description: result.error.errors[0]?.message || "Invalid entry data",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // Fetch fresh stock data before saving
       const { data: freshMedicine, error: fetchError } = await supabase
@@ -126,7 +144,7 @@ const SalesRecording = () => {
       if (fetchError) throw fetchError;
 
       // Check stock availability with fresh data
-      if (freshMedicine && freshMedicine.current_stock < parseInt(entry.quantity)) {
+      if (freshMedicine && freshMedicine.current_stock < result.data.quantity) {
         toast({
           title: "Insufficient Stock",
           description: `Only ${freshMedicine.current_stock} units of ${freshMedicine.name} available.`,
@@ -135,11 +153,11 @@ const SalesRecording = () => {
         return;
       }
       const saleData = {
-        medicine_id: entry.medicineId,
+        medicine_id: result.data.medicineId,
         sale_date: format(selectedDate, "yyyy-MM-dd"),
-        quantity_sold: parseInt(entry.quantity),
-        unit_price: parseFloat(entry.unitPrice),
-        notes: entry.notes || null,
+        quantity_sold: result.data.quantity,
+        unit_price: result.data.unitPrice,
+        notes: result.data.notes || null,
       };
 
       if (entry.dbId) {
@@ -376,6 +394,7 @@ const SalesRecording = () => {
                           id={`quantity-${entry.id}`}
                           type="number"
                           min="1"
+                          max="100000"
                           value={entry.quantity}
                           onChange={(e) => updateEntry(entry.id, "quantity", e.target.value)}
                           placeholder="0"
@@ -389,7 +408,8 @@ const SalesRecording = () => {
                           id={`price-${entry.id}`}
                           type="number"
                           step="0.01"
-                          min="0"
+                          min="0.01"
+                          max="999999.99"
                           value={entry.unitPrice}
                           onChange={(e) => updateEntry(entry.id, "unitPrice", e.target.value)}
                           placeholder="0.00"
@@ -415,7 +435,9 @@ const SalesRecording = () => {
                       onChange={(e) => updateEntry(entry.id, "notes", e.target.value)}
                       placeholder="Add any notes..."
                       rows={2}
+                      maxLength={500}
                     />
+                    <p className="text-xs text-muted-foreground">{entry.notes.length}/500</p>
                   </div>
                 </div>
               ))}
