@@ -374,7 +374,7 @@ const SalesRecording = () => {
                               key={batch.id} 
                               value={batch.id}
                             >
-                              {batch.name} - {batch.current_stock} available
+                              {batch.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
