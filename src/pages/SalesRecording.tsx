@@ -369,20 +369,14 @@ const SalesRecording = () => {
                           <SelectValue placeholder="Select batch" />
                         </SelectTrigger>
                         <SelectContent>
-                          {medicines?.map((batch) => {
-                            const isOutOfStock = batch.current_stock === 0;
-                            
-                            return (
-                              <SelectItem 
-                                key={batch.id} 
-                                value={batch.id}
-                                disabled={isOutOfStock}
-                                className={isOutOfStock ? "opacity-50" : ""}
-                              >
-                                {batch.name} - {batch.current_stock} available
-                              </SelectItem>
-                            );
-                          })}
+                          {medicines?.filter(batch => batch.current_stock > 0).map((batch) => (
+                            <SelectItem 
+                              key={batch.id} 
+                              value={batch.id}
+                            >
+                              {batch.name} - {batch.current_stock} available
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
