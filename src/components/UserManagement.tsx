@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { workerRegistrationSchema } from "@/lib/validations";
 
 interface Profile {
   id: string;
@@ -39,6 +40,7 @@ export default function UserManagement() {
     password: "",
     fullName: "",
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -127,15 +129,39 @@ export default function UserManagement() {
 
   const registerWorker = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
     setRegistering(true);
+
+    // Validate with zod schema
+    const result = workerRegistrationSchema.safeParse({
+      fullName: formData.fullName.trim(),
+      email: formData.email.trim(),
+      password: formData.password,
+    });
+
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        const field = err.path[0] as string;
+        fieldErrors[field] = err.message;
+      });
+      setErrors(fieldErrors);
+      toast({
+        variant: "destructive",
+        title: "Validation error",
+        description: result.error.errors[0]?.message,
+      });
+      setRegistering(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
+        email: result.data.email,
+        password: result.data.password,
         options: {
           data: {
-            full_name: formData.fullName,
+            full_name: result.data.fullName,
           },
           emailRedirectTo: `${window.location.origin}/`,
         },
@@ -149,11 +175,12 @@ export default function UserManagement() {
 
         toast({
           title: "Worker registered",
-          description: `${formData.fullName} has been registered and assigned worker role.`,
+          description: `${result.data.fullName} has been registered and assigned worker role.`,
         });
 
         setDialogOpen(false);
         setFormData({ email: "", password: "", fullName: "" });
+        setErrors({});
         fetchUsers();
       }
     } catch (error: any) {
@@ -208,7 +235,12 @@ export default function UserManagement() {
                       setFormData({ ...formData, fullName: e.target.value })
                     }
                     required
+                    maxLength={100}
+                    className={errors.fullName ? "border-destructive" : ""}
                   />
+                  {errors.fullName && (
+                    <p className="text-sm text-destructive">{errors.fullName}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -220,7 +252,12 @@ export default function UserManagement() {
                       setFormData({ ...formData, email: e.target.value })
                     }
                     required
+                    maxLength={255}
+                    className={errors.email ? "border-destructive" : ""}
                   />
+                  {errors.email && (
+                    <p className="text-sm text-destructive">{errors.email}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
@@ -232,8 +269,15 @@ export default function UserManagement() {
                       setFormData({ ...formData, password: e.target.value })
                     }
                     required
-                    minLength={6}
+                    maxLength={128}
+                    className={errors.password ? "border-destructive" : ""}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Min 8 chars with uppercase, lowercase, and number
+                  </p>
+                  {errors.password && (
+                    <p className="text-sm text-destructive">{errors.password}</p>
+                  )}
                 </div>
                 <Button type="submit" className="w-full" disabled={registering}>
                   {registering ? "Registering..." : "Register Worker"}

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import { addMedicineSchema } from "@/lib/validations";
 
 export const AddMedicineDialog = () => {
   const [open, setOpen] = useState(false);
@@ -29,6 +30,7 @@ export const AddMedicineDialog = () => {
   const [categoryId, setCategoryId] = useState("");
   const [initialStock, setInitialStock] = useState("");
   const [minStockLevel, setMinStockLevel] = useState("10");
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const queryClient = useQueryClient();
 
   const { data: categories } = useQuery({
@@ -45,26 +47,36 @@ export const AddMedicineDialog = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
 
-    if (!name.trim()) {
-      toast.error("Please enter medicine name");
+    // Validate with zod schema
+    const result = addMedicineSchema.safeParse({
+      name: name.trim(),
+      categoryId: categoryId || undefined,
+      initialStock: parseInt(initialStock) || 0,
+      minStockLevel: parseInt(minStockLevel) || 0,
+    });
+
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        const field = err.path[0] as string;
+        fieldErrors[field] = err.message;
+      });
+      setErrors(fieldErrors);
+      toast.error(result.error.errors[0]?.message || "Validation error");
       return;
     }
 
-    if (!initialStock || parseInt(initialStock) < 0) {
-      toast.error("Please enter a valid initial stock");
-      return;
-    }
-
-    const stockAmount = parseInt(initialStock);
+    const stockAmount = result.data.initialStock;
 
     const { error } = await supabase.from("medicines").insert([
       {
-        name: name.trim(),
-        category_id: categoryId || null,
+        name: result.data.name,
+        category_id: result.data.categoryId || null,
         current_stock: stockAmount,
         total_stock: stockAmount,
-        min_stock_level: parseInt(minStockLevel),
+        min_stock_level: result.data.minStockLevel,
         entry_date: new Date().toISOString(),
       },
     ]);
@@ -84,6 +96,7 @@ export const AddMedicineDialog = () => {
     setCategoryId("");
     setInitialStock("");
     setMinStockLevel("10");
+    setErrors({});
     setOpen(false);
   };
 
@@ -111,7 +124,12 @@ export const AddMedicineDialog = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter medicine name"
+                maxLength={200}
+                className={errors.name ? "border-destructive" : ""}
               />
+              {errors.name && (
+                <p className="text-sm text-destructive">{errors.name}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="category">Category</Label>
@@ -134,10 +152,15 @@ export const AddMedicineDialog = () => {
                 id="initial-stock"
                 type="number"
                 min="0"
+                max="1000000"
                 value={initialStock}
                 onChange={(e) => setInitialStock(e.target.value)}
                 placeholder="Enter initial stock quantity"
+                className={errors.initialStock ? "border-destructive" : ""}
               />
+              {errors.initialStock && (
+                <p className="text-sm text-destructive">{errors.initialStock}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="min-level">Minimum Stock Level *</Label>
@@ -145,10 +168,15 @@ export const AddMedicineDialog = () => {
                 id="min-level"
                 type="number"
                 min="0"
+                max="100000"
                 value={minStockLevel}
                 onChange={(e) => setMinStockLevel(e.target.value)}
                 placeholder="Enter minimum stock level"
+                className={errors.minStockLevel ? "border-destructive" : ""}
               />
+              {errors.minStockLevel && (
+                <p className="text-sm text-destructive">{errors.minStockLevel}</p>
+              )}
             </div>
           </div>
           <DialogFooter>
