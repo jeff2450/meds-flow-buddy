@@ -11,11 +11,15 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const { isAdmin, isWorker, hasAnyRole, isLoading: rolesLoading } = useUserRole();
+
+  const canPerformActions = isAdmin || isWorker;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -72,12 +76,16 @@ const Index = () => {
                 <FileText className="h-4 w-4 mr-2" />
                 Monthly Report
               </Button>
-              <Button onClick={() => navigate("/sales-recording")}>
-                <DollarSign className="h-4 w-4 mr-2" />
-                Record Sales
-              </Button>
-              <AddMedicineDialog />
-              <TransactionDialog />
+              {canPerformActions && (
+                <>
+                  <Button onClick={() => navigate("/sales-recording")}>
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Record Sales
+                  </Button>
+                  <AddMedicineDialog />
+                  <TransactionDialog />
+                </>
+              )}
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
@@ -93,7 +101,7 @@ const Index = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="inventory">Inventory</TabsTrigger>
             <TabsTrigger value="sales">Sales</TabsTrigger>
-            <TabsTrigger value="users">User Management</TabsTrigger>
+            {isAdmin && <TabsTrigger value="users">User Management</TabsTrigger>}
           </TabsList>
           <TabsContent value="inventory" className="space-y-8">
             <section>
@@ -107,9 +115,11 @@ const Index = () => {
           <TabsContent value="sales" className="space-y-8">
             <SalesTable />
           </TabsContent>
-          <TabsContent value="users">
-            <UserManagement />
-          </TabsContent>
+          {isAdmin && (
+            <TabsContent value="users">
+              <UserManagement />
+            </TabsContent>
+          )}
         </Tabs>
       </main>
     </div>
