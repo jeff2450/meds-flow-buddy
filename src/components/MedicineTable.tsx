@@ -14,9 +14,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Package, Search } from "lucide-react";
 import { format } from "date-fns";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const MedicineTable = () => {
+  const { t, language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
+  
   const { data: medicines, isLoading } = useQuery({
     queryKey: ["medicines-with-categories"],
     queryFn: async () => {
@@ -48,11 +51,11 @@ export const MedicineTable = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Medicine Batches
+            {t("medicines")}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">{t("loading")}</p>
         </CardContent>
       </Card>
     );
@@ -63,12 +66,12 @@ export const MedicineTable = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Package className="h-5 w-5" />
-          Medicine Batches
+          {t("medicines")}
         </CardTitle>
         <div className="relative mt-4">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search by name or category..."
+            placeholder={t("searchMedicines")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -80,20 +83,23 @@ export const MedicineTable = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Medicine Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Current Stock</TableHead>
-                <TableHead>Total Unit</TableHead>
-                <TableHead>Min. Level</TableHead>
-                <TableHead>Entry Date</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("name")}</TableHead>
+                <TableHead>{t("category")}</TableHead>
+                <TableHead>{t("currentStock")}</TableHead>
+                <TableHead>{language === "sw" ? "Jumla ya Vitengo" : "Total Unit"}</TableHead>
+                <TableHead>{t("minStockLevel")}</TableHead>
+                <TableHead>{t("entryDate")}</TableHead>
+                <TableHead>{language === "sw" ? "Hali" : "Status"}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {!filteredMedicines || filteredMedicines.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground">
-                    {searchQuery ? "No batches match your search." : "No batches found. Record an intake to create your first batch."}
+                    {searchQuery 
+                      ? (language === "sw" ? "Hakuna kundi linalolingana na utafutaji wako." : "No batches match your search.")
+                      : t("noMedicinesFound")
+                    }
                   </TableCell>
                 </TableRow>
               ) : (
@@ -103,7 +109,7 @@ export const MedicineTable = () => {
                     <TableRow key={medicine.id}>
                       <TableCell className="font-medium">{medicine.name}</TableCell>
                       <TableCell>
-                        {medicine.medicine_categories?.name || "Uncategorized"}
+                        {medicine.medicine_categories?.name || (language === "sw" ? "Haijagawanywa" : "Uncategorized")}
                       </TableCell>
                       <TableCell>{medicine.current_stock}</TableCell>
                       <TableCell>{medicine.total_stock}</TableCell>
@@ -113,9 +119,11 @@ export const MedicineTable = () => {
                       </TableCell>
                       <TableCell>
                         {isLowStock ? (
-                          <Badge variant="destructive">Low Stock</Badge>
+                          <Badge variant="destructive">{t("lowStock")}</Badge>
                         ) : (
-                          <Badge className="bg-success text-success-foreground">In Stock</Badge>
+                          <Badge className="bg-success text-success-foreground">
+                            {language === "sw" ? "Ipo" : "In Stock"}
+                          </Badge>
                         )}
                       </TableCell>
                     </TableRow>

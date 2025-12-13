@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { workerRegistrationSchema } from "@/lib/validations";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Profile {
   id: string;
@@ -30,6 +31,7 @@ interface UserRole {
 }
 
 export default function UserManagement() {
+  const { t, language } = useLanguage();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +69,7 @@ export default function UserManagement() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error loading users",
+        title: language === "sw" ? "Kosa la kupakia watumiaji" : "Error loading users",
         description: error.message,
       });
     } finally {
@@ -84,15 +86,17 @@ export default function UserManagement() {
       if (error) throw error;
 
       toast({
-        title: "Role assigned",
-        description: `User has been assigned the ${role} role.`,
+        title: language === "sw" ? "Jukumu limepewa" : "Role assigned",
+        description: language === "sw" 
+          ? `Mtumiaji amepewa jukumu la ${role === "admin" ? "msimamizi" : "mfanyakazi"}.`
+          : `User has been assigned the ${role} role.`,
       });
 
       fetchUsers();
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error assigning role",
+        title: language === "sw" ? "Kosa la kutoa jukumu" : "Error assigning role",
         description: error.message,
       });
     }
@@ -109,15 +113,17 @@ export default function UserManagement() {
       if (error) throw error;
 
       toast({
-        title: "Role removed",
-        description: `${role} role has been removed.`,
+        title: language === "sw" ? "Jukumu limeondolewa" : "Role removed",
+        description: language === "sw" 
+          ? `Jukumu la ${role === "admin" ? "msimamizi" : "mfanyakazi"} limeondolewa.`
+          : `${role} role has been removed.`,
       });
 
       fetchUsers();
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error removing role",
+        title: language === "sw" ? "Kosa la kuondoa jukumu" : "Error removing role",
         description: error.message,
       });
     }
@@ -132,7 +138,6 @@ export default function UserManagement() {
     setErrors({});
     setRegistering(true);
 
-    // Validate with zod schema
     const result = workerRegistrationSchema.safeParse({
       fullName: formData.fullName.trim(),
       email: formData.email.trim(),
@@ -148,7 +153,7 @@ export default function UserManagement() {
       setErrors(fieldErrors);
       toast({
         variant: "destructive",
-        title: "Validation error",
+        title: language === "sw" ? "Kosa la uthibitishaji" : "Validation error",
         description: result.error.errors[0]?.message,
       });
       setRegistering(false);
@@ -170,12 +175,13 @@ export default function UserManagement() {
       if (error) throw error;
 
       if (data.user) {
-        // Assign worker role
         await assignRole(data.user.id, "worker");
 
         toast({
-          title: "Worker registered",
-          description: `${result.data.fullName} has been registered and assigned worker role.`,
+          title: language === "sw" ? "Mfanyakazi amesajiliwa" : "Worker registered",
+          description: language === "sw" 
+            ? `${result.data.fullName} amesajiliwa na kupewa jukumu la mfanyakazi.`
+            : `${result.data.fullName} has been registered and assigned worker role.`,
         });
 
         setDialogOpen(false);
@@ -186,7 +192,7 @@ export default function UserManagement() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Registration failed",
+        title: language === "sw" ? "Usajili umeshindwa" : "Registration failed",
         description: error.message,
       });
     } finally {
@@ -195,7 +201,7 @@ export default function UserManagement() {
   };
 
   if (loading) {
-    return <div className="text-center py-8">Loading users...</div>;
+    return <div className="text-center py-8">{t("loading")}</div>;
   }
 
   return (
@@ -205,29 +211,31 @@ export default function UserManagement() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5" />
-              User Management
+              {t("userManagement")}
             </CardTitle>
             <CardDescription>
-              Register workers and assign roles to users
+              {t("manageUsersDesc")}
             </CardDescription>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <UserPlus className="h-4 w-4 mr-2" />
-                Register Worker
+                {t("registerWorker")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Register New Worker</DialogTitle>
+                <DialogTitle>{t("registerNewWorker")}</DialogTitle>
                 <DialogDescription>
-                  Create a new worker account with email and password.
+                  {language === "sw" 
+                    ? "Unda akaunti mpya ya mfanyakazi na barua pepe na nenosiri."
+                    : "Create a new worker account with email and password."}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={registerWorker} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="fullName">{t("fullName")}</Label>
                   <Input
                     id="fullName"
                     value={formData.fullName}
@@ -243,7 +251,7 @@ export default function UserManagement() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t("email")}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -260,7 +268,7 @@ export default function UserManagement() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{t("password")}</Label>
                   <Input
                     id="password"
                     type="password"
@@ -273,14 +281,18 @@ export default function UserManagement() {
                     className={errors.password ? "border-destructive" : ""}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Min 8 chars with uppercase, lowercase, and number
+                    {language === "sw" 
+                      ? "Angalau herufi 8 zenye herufi kubwa, ndogo, na nambari"
+                      : "Min 8 chars with uppercase, lowercase, and number"}
                   </p>
                   {errors.password && (
                     <p className="text-sm text-destructive">{errors.password}</p>
                   )}
                 </div>
                 <Button type="submit" className="w-full" disabled={registering}>
-                  {registering ? "Registering..." : "Register Worker"}
+                  {registering 
+                    ? (language === "sw" ? "Inasajili..." : "Registering...") 
+                    : t("registerWorker")}
                 </Button>
               </form>
             </DialogContent>
@@ -300,13 +312,15 @@ export default function UserManagement() {
                 className="flex items-center justify-between p-4 border rounded-lg"
               >
                 <div className="flex-1">
-                  <div className="font-medium">{profile.full_name || "No name"}</div>
+                  <div className="font-medium">{profile.full_name || (language === "sw" ? "Hakuna jina" : "No name")}</div>
                   <div className="text-sm text-muted-foreground">{profile.email}</div>
                   <div className="flex gap-2 mt-2">
-                    {hasWorkerRole && <Badge variant="secondary">Worker</Badge>}
-                    {hasAdminRole && <Badge variant="default">Admin</Badge>}
+                    {hasWorkerRole && <Badge variant="secondary">{t("worker")}</Badge>}
+                    {hasAdminRole && <Badge variant="default">{t("admin")}</Badge>}
                     {!hasWorkerRole && !hasAdminRole && (
-                      <Badge variant="outline">No role assigned</Badge>
+                      <Badge variant="outline">
+                        {language === "sw" ? "Hakuna jukumu lililopewa" : "No role assigned"}
+                      </Badge>
                     )}
                   </div>
                 </div>
@@ -317,7 +331,7 @@ export default function UserManagement() {
                       onClick={() => assignRole(profile.id, "admin")}
                     >
                       <Shield className="h-4 w-4 mr-2" />
-                      Make Admin
+                      {t("makeAdmin")}
                     </Button>
                   )}
                 </div>

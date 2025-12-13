@@ -2,8 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, TrendingDown, TrendingUp, AlertTriangle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const DashboardStats = () => {
+  const { t, language } = useLanguage();
+  
   const { data: medicines } = useQuery({
     queryKey: ["medicines"],
     queryFn: async () => {
@@ -37,31 +40,31 @@ export const DashboardStats = () => {
 
   const stats = [
     {
-      title: "Total Medicines",
+      title: t("totalMedicines"),
       value: totalMedicines,
       icon: Package,
-      description: `${totalStock} units in stock`,
+      description: language === "sw" ? `${totalStock} vitengo kwenye hisa` : `${totalStock} units in stock`,
       gradient: "from-primary to-primary-glow",
     },
     {
-      title: "Recent Intake",
+      title: language === "sw" ? "Upokeaji wa Hivi Karibuni" : "Recent Intake",
       value: recentIntake,
       icon: TrendingUp,
-      description: "Last 10 transactions",
+      description: language === "sw" ? "Miamala 10 ya mwisho" : "Last 10 transactions",
       gradient: "from-success to-emerald-500",
     },
     {
-      title: "Recent Outtake",
+      title: language === "sw" ? "Utoaji wa Hivi Karibuni" : "Recent Outtake",
       value: recentOuttake,
       icon: TrendingDown,
-      description: "Last 10 transactions",
+      description: language === "sw" ? "Miamala 10 ya mwisho" : "Last 10 transactions",
       gradient: "from-accent to-purple-600",
     },
     {
-      title: "Low Stock Alert",
+      title: t("lowStock"),
       value: lowStockCount,
       icon: AlertTriangle,
-      description: "Below minimum level",
+      description: language === "sw" ? "Chini ya kiwango cha chini" : "Below minimum level",
       gradient: lowStockCount > 0 ? "from-destructive to-red-600" : "from-muted to-muted-foreground",
     },
   ];

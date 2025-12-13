@@ -17,9 +17,11 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function SalesTable() {
   const { toast } = useToast();
+  const { t, language } = useLanguage();
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
@@ -58,15 +60,15 @@ export function SalesTable() {
       if (error) throw error;
 
       toast({
-        title: "Sale deleted",
-        description: "The sale record has been deleted successfully.",
+        title: language === "sw" ? "Uuzaji umefutwa" : "Sale deleted",
+        description: language === "sw" ? "Rekodi ya uuzaji imefutwa kwa ufanisi." : "The sale record has been deleted successfully.",
       });
 
       queryClient.invalidateQueries({ queryKey: ["medicine-sales"] });
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error",
+        title: t("error"),
         description: error.message,
       });
     }
@@ -80,14 +82,16 @@ export function SalesTable() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Sales Records</CardTitle>
-            <CardDescription>View and manage daily medicine sales</CardDescription>
+            <CardTitle>{t("salesRecords")}</CardTitle>
+            <CardDescription>
+              {language === "sw" ? "Tazama na simamia mauzo ya dawa ya kila siku" : "View and manage daily medicine sales"}
+            </CardDescription>
           </div>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className={cn(!selectedDate && "text-muted-foreground")}>
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {selectedDate ? format(selectedDate, "PPP") : "All dates"}
+                {selectedDate ? format(selectedDate, "PPP") : (language === "sw" ? "Tarehe zote" : "All dates")}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
@@ -105,7 +109,7 @@ export function SalesTable() {
                   className="w-full"
                   onClick={() => setSelectedDate(undefined)}
                 >
-                  Show all dates
+                  {language === "sw" ? "Onyesha tarehe zote" : "Show all dates"}
                 </Button>
               </div>
             </PopoverContent>
@@ -114,11 +118,11 @@ export function SalesTable() {
         {selectedDate && sales && sales.length > 0 && (
           <div className="grid grid-cols-2 gap-4 mt-4">
             <div className="p-4 bg-primary/10 rounded-lg">
-              <p className="text-sm text-muted-foreground">Total Quantity</p>
+              <p className="text-sm text-muted-foreground">{language === "sw" ? "Jumla ya Kiasi" : "Total Quantity"}</p>
               <p className="text-2xl font-bold">{totalQuantity}</p>
             </div>
             <div className="p-4 bg-green-500/10 rounded-lg">
-              <p className="text-sm text-muted-foreground">Total Revenue</p>
+              <p className="text-sm text-muted-foreground">{language === "sw" ? "Jumla ya Mapato" : "Total Revenue"}</p>
               <p className="text-2xl font-bold">${totalRevenue.toFixed(2)}</p>
             </div>
           </div>
@@ -128,19 +132,19 @@ export function SalesTable() {
         {isLoading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="text-muted-foreground mt-2">Loading sales...</p>
+            <p className="text-muted-foreground mt-2">{t("loading")}</p>
           </div>
         ) : sales && sales.length > 0 ? (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Medicine</TableHead>
-                  <TableHead className="text-right">Quantity</TableHead>
-                  <TableHead className="text-right">Unit Price</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead>Notes</TableHead>
+                  <TableHead>{language === "sw" ? "Tarehe" : "Date"}</TableHead>
+                  <TableHead>{t("medicine")}</TableHead>
+                  <TableHead className="text-right">{t("quantity")}</TableHead>
+                  <TableHead className="text-right">{t("unitPrice")}</TableHead>
+                  <TableHead className="text-right">{t("totalAmount")}</TableHead>
+                  <TableHead>{t("notes")}</TableHead>
                   <TableHead className="w-[70px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -149,7 +153,7 @@ export function SalesTable() {
                   <TableRow key={sale.id}>
                     <TableCell>{format(new Date(sale.sale_date), "MMM dd, yyyy")}</TableCell>
                     <TableCell className="font-medium">
-                      {sale.medicines?.name || "Unknown"}
+                      {sale.medicines?.name || (language === "sw" ? "Haijulikani" : "Unknown")}
                     </TableCell>
                     <TableCell className="text-right">
                       {sale.quantity_sold}
@@ -180,8 +184,10 @@ export function SalesTable() {
         ) : (
           <div className="text-center py-8 text-muted-foreground">
             {selectedDate
-              ? `No sales recorded for ${format(selectedDate, "MMMM dd, yyyy")}`
-              : "No sales records found. Start by recording a sale."}
+              ? (language === "sw" 
+                  ? `Hakuna mauzo yaliyorekodiwa kwa ${format(selectedDate, "MMMM dd, yyyy")}`
+                  : `No sales recorded for ${format(selectedDate, "MMMM dd, yyyy")}`)
+              : t("noSalesFound")}
           </div>
         )}
       </CardContent>
