@@ -24,8 +24,10 @@ import {
 import { TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { transactionSchema } from "@/lib/validations";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const TransactionDialog = () => {
+  const { t, language } = useLanguage();
   const [open, setOpen] = useState(false);
   const [medicineId, setMedicineId] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -49,7 +51,6 @@ export const TransactionDialog = () => {
     e.preventDefault();
     setErrors({});
     
-    // Validate with zod schema
     const result = transactionSchema.safeParse({
       medicineId,
       quantity: parseInt(quantity) || 0,
@@ -63,18 +64,16 @@ export const TransactionDialog = () => {
         fieldErrors[field] = err.message;
       });
       setErrors(fieldErrors);
-      toast.error(result.error.errors[0]?.message || "Validation error");
+      toast.error(result.error.errors[0]?.message || t("error"));
       return;
     }
 
-    // Get the template medicine to copy name and category
     const template = medicines?.find(m => m.id === result.data.medicineId);
     if (!template) {
-      toast.error("Medicine template not found");
+      toast.error(language === "sw" ? "Kiolezo cha dawa hakijapatikana" : "Medicine template not found");
       return;
     }
 
-    // Create new batch entry
     const { error: insertError } = await supabase
       .from("medicines")
       .insert([{
@@ -87,18 +86,17 @@ export const TransactionDialog = () => {
       }]);
 
     if (insertError) {
-      console.error('Error creating batch:', insertError);
-      toast.error("Failed to create new batch");
+      console.error("Error creating batch:", insertError);
+      toast.error(language === "sw" ? "Imeshindwa kuunda kundi jipya" : "Failed to create new batch");
       return;
     }
 
-    toast.success("New batch created successfully");
+    toast.success(language === "sw" ? "Kundi jipya limeundwa kwa ufanisi" : "New batch created successfully");
 
     queryClient.invalidateQueries({ queryKey: ["medicines"] });
     queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
     queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
     
-    // Reset form
     setMedicineId("");
     setQuantity("");
     setNotes("");
@@ -119,23 +117,23 @@ export const TransactionDialog = () => {
       <DialogTrigger asChild>
         <Button>
           <TrendingUp className="mr-2 h-4 w-4" />
-          Record Intake
+          {t("recordIntake")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Record Stock Intake</DialogTitle>
+            <DialogTitle>{t("stockIntake")}</DialogTitle>
             <DialogDescription>
-              Create a new independent batch from an existing medicine
+              {t("recordStockIntake")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="medicine">Medicine Template *</Label>
+              <Label htmlFor="medicine">{language === "sw" ? "Kiolezo cha Dawa" : "Medicine Template"} *</Label>
               <Select value={medicineId} onValueChange={setMedicineId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select medicine to create batch" />
+                  <SelectValue placeholder={t("selectMedicine")} />
                 </SelectTrigger>
                 <SelectContent>
                   {Array.from(new Set(medicines?.map(m => m.name) || [])).map((name) => {
@@ -150,7 +148,7 @@ export const TransactionDialog = () => {
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="quantity">Quantity *</Label>
+              <Label htmlFor="quantity">{t("quantity")} *</Label>
               <Input
                 id="quantity"
                 type="number"
@@ -158,7 +156,7 @@ export const TransactionDialog = () => {
                 onChange={(e) => setQuantity(e.target.value)}
                 min="1"
                 max="100000"
-                placeholder="Enter quantity"
+                placeholder={language === "sw" ? "Ingiza kiasi" : "Enter quantity"}
                 className={errors.quantity ? "border-destructive" : ""}
               />
               {errors.quantity && (
@@ -166,12 +164,12 @@ export const TransactionDialog = () => {
               )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Label htmlFor="notes">{t("notes")} ({language === "sw" ? "Hiari" : "Optional"})</Label>
               <Textarea
                 id="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any additional notes..."
+                placeholder={t("optionalNotes")}
                 rows={3}
                 maxLength={500}
                 className={errors.notes ? "border-destructive" : ""}
@@ -188,9 +186,9 @@ export const TransactionDialog = () => {
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("cancel")}
             </Button>
-            <Button type="submit">Record Intake</Button>
+            <Button type="submit">{t("recordIntake")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

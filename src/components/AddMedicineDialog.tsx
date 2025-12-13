@@ -23,8 +23,10 @@ import {
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { addMedicineSchema } from "@/lib/validations";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const AddMedicineDialog = () => {
+  const { t, language } = useLanguage();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -49,7 +51,6 @@ export const AddMedicineDialog = () => {
     e.preventDefault();
     setErrors({});
 
-    // Validate with zod schema
     const result = addMedicineSchema.safeParse({
       name: name.trim(),
       categoryId: categoryId || undefined,
@@ -64,7 +65,7 @@ export const AddMedicineDialog = () => {
         fieldErrors[field] = err.message;
       });
       setErrors(fieldErrors);
-      toast.error(result.error.errors[0]?.message || "Validation error");
+      toast.error(result.error.errors[0]?.message || t("error"));
       return;
     }
 
@@ -83,15 +84,14 @@ export const AddMedicineDialog = () => {
 
     if (error) {
       console.error("Error adding medicine:", error);
-      toast.error("Failed to add medicine");
+      toast.error(language === "sw" ? "Imeshindwa kuongeza dawa" : "Failed to add medicine");
       return;
     }
 
-    toast.success("Medicine added successfully");
+    toast.success(language === "sw" ? "Dawa imeongezwa kwa ufanisi" : "Medicine added successfully");
     queryClient.invalidateQueries({ queryKey: ["medicines"] });
     queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
 
-    // Reset form
     setName("");
     setCategoryId("");
     setInitialStock("");
@@ -105,25 +105,25 @@ export const AddMedicineDialog = () => {
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          Add Medicine
+          {t("addMedicine")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Add New Medicine</DialogTitle>
+          <DialogTitle>{t("addNewMedicine")}</DialogTitle>
           <DialogDescription>
-            Register a new medicine in the inventory system
+            {t("addNewMedicineDesc")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">Medicine Name *</Label>
+              <Label htmlFor="name">{t("medicineName")} *</Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter medicine name"
+                placeholder={language === "sw" ? "Ingiza jina la dawa" : "Enter medicine name"}
                 maxLength={200}
                 className={errors.name ? "border-destructive" : ""}
               />
@@ -132,10 +132,10 @@ export const AddMedicineDialog = () => {
               )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">{t("category")}</Label>
               <Select value={categoryId} onValueChange={setCategoryId}>
                 <SelectTrigger id="category">
-                  <SelectValue placeholder="Select category (optional)" />
+                  <SelectValue placeholder={t("selectCategory")} />
                 </SelectTrigger>
                 <SelectContent>
                   {categories?.map((category) => (
@@ -147,7 +147,7 @@ export const AddMedicineDialog = () => {
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="initial-stock">Initial Stock *</Label>
+              <Label htmlFor="initial-stock">{t("initialStock")} *</Label>
               <Input
                 id="initial-stock"
                 type="number"
@@ -155,7 +155,7 @@ export const AddMedicineDialog = () => {
                 max="1000000"
                 value={initialStock}
                 onChange={(e) => setInitialStock(e.target.value)}
-                placeholder="Enter initial stock quantity"
+                placeholder={language === "sw" ? "Ingiza kiasi cha hisa ya awali" : "Enter initial stock quantity"}
                 className={errors.initialStock ? "border-destructive" : ""}
               />
               {errors.initialStock && (
@@ -163,7 +163,7 @@ export const AddMedicineDialog = () => {
               )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="min-level">Minimum Stock Level *</Label>
+              <Label htmlFor="min-level">{t("minStockLevel")} *</Label>
               <Input
                 id="min-level"
                 type="number"
@@ -171,7 +171,7 @@ export const AddMedicineDialog = () => {
                 max="100000"
                 value={minStockLevel}
                 onChange={(e) => setMinStockLevel(e.target.value)}
-                placeholder="Enter minimum stock level"
+                placeholder={language === "sw" ? "Ingiza kiwango cha chini cha hisa" : "Enter minimum stock level"}
                 className={errors.minStockLevel ? "border-destructive" : ""}
               />
               {errors.minStockLevel && (
@@ -185,9 +185,9 @@ export const AddMedicineDialog = () => {
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("cancel")}
             </Button>
-            <Button type="submit">Add Medicine</Button>
+            <Button type="submit">{t("addMedicine")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

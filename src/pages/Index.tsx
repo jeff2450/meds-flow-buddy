@@ -4,6 +4,7 @@ import { TransactionDialog } from "@/components/TransactionDialog";
 import { AddMedicineDialog } from "@/components/AddMedicineDialog";
 import { SalesTable } from "@/components/SalesTable";
 import UserManagement from "@/components/UserManagement";
+import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Activity, DollarSign, FileText, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,10 +13,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const { isAdmin, isWorker, hasAnyRole, isLoading: rolesLoading } = useUserRole();
 
@@ -42,8 +45,8 @@ const Index = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
+      title: t("logout"),
+      description: t("success"),
     });
     navigate("/auth");
   };
@@ -64,23 +67,24 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-                  Pharmaceutical Inventory
+                  {t("appTitle")}
                 </h1>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Manage your medicine stock efficiently
+                  {t("appSubtitle")}
                 </p>
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex items-center gap-3">
+              <LanguageSwitch />
               <Button variant="outline" onClick={() => navigate("/monthly-report")}>
                 <FileText className="h-4 w-4 mr-2" />
-                Monthly Report
+                {t("monthlyReport")}
               </Button>
               {canPerformActions && (
                 <>
                   <Button onClick={() => navigate("/sales-recording")}>
                     <DollarSign className="h-4 w-4 mr-2" />
-                    Record Sales
+                    {t("recordSales")}
                   </Button>
                   <AddMedicineDialog />
                   <TransactionDialog />
@@ -88,7 +92,7 @@ const Index = () => {
               )}
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
-                Logout
+                {t("logout")}
               </Button>
             </div>
           </div>
@@ -99,13 +103,13 @@ const Index = () => {
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="inventory" className="w-full">
           <TabsList className="mb-6">
-            <TabsTrigger value="inventory">Inventory</TabsTrigger>
-            <TabsTrigger value="sales">Sales</TabsTrigger>
-            {isAdmin && <TabsTrigger value="users">User Management</TabsTrigger>}
+            <TabsTrigger value="inventory">{t("inventory")}</TabsTrigger>
+            <TabsTrigger value="sales">{t("sales")}</TabsTrigger>
+            {isAdmin && <TabsTrigger value="users">{t("userManagement")}</TabsTrigger>}
           </TabsList>
           <TabsContent value="inventory" className="space-y-8">
             <section>
-              <h2 className="text-xl font-semibold mb-4">Overview</h2>
+              <h2 className="text-xl font-semibold mb-4">{t("overview")}</h2>
               <DashboardStats />
             </section>
             <section>
