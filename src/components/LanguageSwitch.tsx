@@ -25,3 +25,5 @@ export const LanguageSwitch = () => {
     </div>
   );
 };
+
+export default LanguageSwitch;
