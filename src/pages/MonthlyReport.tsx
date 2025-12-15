@@ -24,9 +24,12 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageSwitch from "@/components/LanguageSwitch";
 
 const MonthlyReport = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [authChecked, setAuthChecked] = useState(false);
 
@@ -132,29 +135,32 @@ const MonthlyReport = () => {
               </Button>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-                  Monthly Report
+                  {t("monthlyReport")}
                 </h1>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Analyze monthly sales and stock data
+                  {t("analyzeMonthlyData")}
                 </p>
               </div>
             </div>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(selectedMonth, "MMMM yyyy")}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={selectedMonth}
-                  onSelect={(date) => date && setSelectedMonth(date)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <div className="flex items-center gap-3">
+              <LanguageSwitch />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {format(selectedMonth, "MMMM yyyy")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={selectedMonth}
+                    onSelect={(date) => date && setSelectedMonth(date)}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
         </div>
       </header>
@@ -165,52 +171,52 @@ const MonthlyReport = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("totalRevenue")}</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">
-                For {format(selectedMonth, "MMMM yyyy")}
+                {t("forMonth")} {format(selectedMonth, "MMMM yyyy")}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Units Sold</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("unitsSold")}</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalQuantitySold}</div>
               <p className="text-xs text-muted-foreground">
-                Total quantity sold
+                {t("totalQuantitySold")}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Medicines Sold</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("medicinesSold")}</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalMedicinesSold}</div>
               <p className="text-xs text-muted-foreground">
-                Different medicines
+                {t("differentMedicines")}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Current Stock</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("currentStock")}</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalCurrentStock}</div>
               <p className="text-xs text-muted-foreground">
-                Total units available
+                {t("totalUnitsAvailable")}
               </p>
             </CardContent>
           </Card>
@@ -219,8 +225,8 @@ const MonthlyReport = () => {
         {/* Chart */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Sales by Medicine</CardTitle>
-            <CardDescription>Revenue breakdown for {format(selectedMonth, "MMMM yyyy")}</CardDescription>
+            <CardTitle>{t("salesByMedicine")}</CardTitle>
+            <CardDescription>{t("revenueBreakdownFor")} {format(selectedMonth, "MMMM yyyy")}</CardDescription>
           </CardHeader>
           <CardContent>
             {salesByMedicineArray.length > 0 ? (
@@ -242,7 +248,7 @@ const MonthlyReport = () => {
                 </ResponsiveContainer>
               </ChartContainer>
             ) : (
-              <p className="text-center text-muted-foreground py-8">No sales data for this month</p>
+              <p className="text-center text-muted-foreground py-8">{t("noSalesDataForMonth")}</p>
             )}
           </CardContent>
         </Card>
@@ -250,20 +256,20 @@ const MonthlyReport = () => {
         {/* Detailed Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Sales Details</CardTitle>
-            <CardDescription>Breakdown by medicine for {format(selectedMonth, "MMMM yyyy")}</CardDescription>
+            <CardTitle>{t("salesDetails")}</CardTitle>
+            <CardDescription>{t("breakdownByMedicine")} {format(selectedMonth, "MMMM yyyy")}</CardDescription>
           </CardHeader>
           <CardContent>
             {salesLoading ? (
-              <p className="text-center text-muted-foreground py-8">Loading...</p>
+              <p className="text-center text-muted-foreground py-8">{t("loading")}</p>
             ) : salesByMedicineArray.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Medicine Name</TableHead>
-                    <TableHead className="text-right">Quantity Sold</TableHead>
-                    <TableHead className="text-right">Total Revenue</TableHead>
-                    <TableHead className="text-right">Avg Price/Unit</TableHead>
+                    <TableHead>{t("medicineName")}</TableHead>
+                    <TableHead className="text-right">{t("quantitySold")}</TableHead>
+                    <TableHead className="text-right">{t("totalRevenueLabel")}</TableHead>
+                    <TableHead className="text-right">{t("avgPricePerUnit")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -280,7 +286,7 @@ const MonthlyReport = () => {
                 </TableBody>
               </Table>
             ) : (
-              <p className="text-center text-muted-foreground py-8">No sales recorded for this month</p>
+              <p className="text-center text-muted-foreground py-8">{t("noSalesRecordedForMonth")}</p>
             )}
           </CardContent>
         </Card>

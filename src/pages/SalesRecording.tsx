@@ -19,6 +19,8 @@ import { ArrowLeft, Plus, Trash2, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { salesEntrySchema } from "@/lib/validations";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageSwitch from "@/components/LanguageSwitch";
 
 // Auth check
 const useSalesRecordingAuth = () => {
@@ -59,6 +61,7 @@ interface SaleEntry {
 const SalesRecording = () => {
   const authChecked = useSalesRecordingAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [salesEntries, setSalesEntries] = useState<SaleEntry[]>([
     { id: crypto.randomUUID(), medicineId: "", quantity: "", unitPrice: "", notes: "" }
@@ -126,7 +129,7 @@ const SalesRecording = () => {
 
     if (!result.success) {
       toast({
-        title: "Validation Error",
+        title: t("validationError"),
         description: result.error.errors[0]?.message || "Invalid entry data",
         variant: "destructive",
       });
@@ -146,8 +149,8 @@ const SalesRecording = () => {
       // Check stock availability with fresh data
       if (freshMedicine && freshMedicine.current_stock < result.data.quantity) {
         toast({
-          title: "Insufficient Stock",
-          description: `Only ${freshMedicine.current_stock} units of ${freshMedicine.name} available.`,
+          title: t("insufficientStock"),
+          description: `${t("onlyUnitsAvailable")}: ${freshMedicine.current_stock} - ${freshMedicine.name}`,
           variant: "destructive",
         });
         return;
@@ -230,8 +233,8 @@ const SalesRecording = () => {
 
       if (unsavedEntries.length === 0) {
         toast({
-          title: "All saved",
-          description: "All entries are already saved.",
+          title: t("allSaved"),
+          description: t("allEntriesAlreadySaved"),
         });
         setLoading(false);
         return;
@@ -262,8 +265,8 @@ const SalesRecording = () => {
       }));
 
       toast({
-        title: "Daily sales saved",
-        description: `Successfully saved ${unsavedEntries.length} entry(s) for ${format(selectedDate, "PPP")}.`,
+        title: t("dailySalesSaved"),
+        description: `${t("successfullySavedEntries")} ${format(selectedDate, "PPP")} (${unsavedEntries.length})`,
       });
 
       queryClient.invalidateQueries({ queryKey: ["medicine-sales"] });
@@ -284,19 +287,21 @@ const SalesRecording = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card shadow-sm">
         <div className="container mx-auto px-4 py-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/")}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/")}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {t("backToDashboard")}
+            </Button>
+            <LanguageSwitch />
+          </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-            Record Daily Sales
+            {t("recordDailySales")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Enter all medicine sales for the selected date
+            {t("enterSalesForDate")}
           </p>
         </div>
       </header>
@@ -305,8 +310,8 @@ const SalesRecording = () => {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Select Date</CardTitle>
-              <CardDescription>Choose the date for these sales records</CardDescription>
+              <CardTitle>{t("selectDate")}</CardTitle>
+              <CardDescription>{t("chooseDateForSales")}</CardDescription>
             </CardHeader>
             <CardContent>
               <Calendar
@@ -323,12 +328,12 @@ const SalesRecording = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Sales Entries</CardTitle>
-                  <CardDescription>Add all medicines sold on {format(selectedDate, "PPP")}</CardDescription>
+                  <CardTitle>{t("salesEntries")}</CardTitle>
+                  <CardDescription>{t("addMedicinesSoldOn")} {format(selectedDate, "PPP")}</CardDescription>
                 </div>
                 <Button type="button" onClick={addNewEntry} size="sm">
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Entry
+                  {t("addEntry")}
                 </Button>
               </div>
             </CardHeader>
@@ -337,11 +342,11 @@ const SalesRecording = () => {
                 <div key={entry.id} className="p-4 border rounded-lg space-y-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">Entry {index + 1}</h3>
+                      <h3 className="font-semibold">{t("entry")} {index + 1}</h3>
                       {entry.saved && (
                         <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
                           <CheckCircle2 className="h-3 w-3" />
-                          Auto-saved
+                          {t("autoSaved")}
                         </span>
                       )}
                     </div>
@@ -359,14 +364,14 @@ const SalesRecording = () => {
 
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor={`medicine-${entry.id}`}>Medicine Batch</Label>
+                      <Label htmlFor={`medicine-${entry.id}`}>{t("medicineBatch")}</Label>
                       <Select
                         value={entry.medicineId}
                         onValueChange={(value) => updateEntry(entry.id, "medicineId", value)}
                         required
                       >
                         <SelectTrigger id={`medicine-${entry.id}`}>
-                          <SelectValue placeholder="Select batch" />
+                          <SelectValue placeholder={t("selectBatch")} />
                         </SelectTrigger>
                         <SelectContent>
                           {medicines?.filter(batch => batch.current_stock > 0).map((batch) => (
@@ -383,7 +388,7 @@ const SalesRecording = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor={`quantity-${entry.id}`}>Quantity</Label>
+                        <Label htmlFor={`quantity-${entry.id}`}>{t("quantity")}</Label>
                         <Input
                           id={`quantity-${entry.id}`}
                           type="number"
@@ -397,7 +402,7 @@ const SalesRecording = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor={`price-${entry.id}`}>Unit Price ($)</Label>
+                        <Label htmlFor={`price-${entry.id}`}>{t("unitPriceDollar")}</Label>
                         <Input
                           id={`price-${entry.id}`}
                           type="number"
@@ -416,18 +421,18 @@ const SalesRecording = () => {
                   {entry.quantity && entry.unitPrice && (
                     <div className="flex justify-end">
                       <span className="text-sm font-medium">
-                        Subtotal: ${(parseFloat(entry.quantity) * parseFloat(entry.unitPrice)).toFixed(2)}
+                        {t("subtotal")}: ${(parseFloat(entry.quantity) * parseFloat(entry.unitPrice)).toFixed(2)}
                       </span>
                     </div>
                   )}
 
                   <div className="space-y-2">
-                    <Label htmlFor={`notes-${entry.id}`}>Notes (Optional)</Label>
+                    <Label htmlFor={`notes-${entry.id}`}>{t("notesOptional")}</Label>
                     <Textarea
                       id={`notes-${entry.id}`}
                       value={entry.notes}
                       onChange={(e) => updateEntry(entry.id, "notes", e.target.value)}
-                      placeholder="Add any notes..."
+                      placeholder={t("addNotes")}
                       rows={2}
                       maxLength={500}
                     />
@@ -438,7 +443,7 @@ const SalesRecording = () => {
 
               <div className="p-4 bg-muted rounded-lg">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold">Total for {format(selectedDate, "PPP")}:</span>
+                  <span className="text-lg font-semibold">{t("totalFor")} {format(selectedDate, "PPP")}:</span>
                   <span className="text-2xl font-bold">${calculateTotal().toFixed(2)}</span>
                 </div>
               </div>
@@ -452,14 +457,14 @@ const SalesRecording = () => {
               onClick={() => navigate("/")}
               disabled={loading}
             >
-              Back to Dashboard
+              {t("backToDashboard")}
             </Button>
             <Button
               type="button"
               onClick={saveDailySales}
               disabled={loading}
             >
-              Save Daily Sales
+              {t("saveDailySales")}
             </Button>
           </div>
         </div>
