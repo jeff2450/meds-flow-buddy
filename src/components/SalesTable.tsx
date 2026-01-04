@@ -18,10 +18,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export function SalesTable() {
   const { toast } = useToast();
   const { t, language } = useLanguage();
+  const { isAdmin } = useUserRole();
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
@@ -145,7 +147,7 @@ export function SalesTable() {
                   <TableHead className="text-right">{t("unitPrice")}</TableHead>
                   <TableHead className="text-right">{t("totalAmount")}</TableHead>
                   <TableHead>{t("notes")}</TableHead>
-                  <TableHead className="w-[70px]"></TableHead>
+                  {isAdmin && <TableHead className="w-[70px]"></TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -167,15 +169,17 @@ export function SalesTable() {
                     <TableCell className="max-w-[200px] truncate">
                       {sale.notes || "-"}
                     </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(sale.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </TableCell>
+                    {isAdmin && (
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(sale.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
