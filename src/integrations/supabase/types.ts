@@ -14,6 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          performed_at: string
+          performed_by: string | null
+          record_id: string
+          table_name: string
+        }
+        Insert: {
+          action: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          performed_at?: string
+          performed_by?: string | null
+          record_id: string
+          table_name: string
+        }
+        Update: {
+          action?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          performed_at?: string
+          performed_by?: string | null
+          record_id?: string
+          table_name?: string
+        }
+        Relationships: []
+      }
+      controlled_drugs_log: {
+        Row: {
+          closing_balance: number
+          compliance_confirmed: boolean | null
+          created_at: string
+          id: string
+          log_date: string
+          medicine_id: string
+          notes: string | null
+          opening_balance: number
+          prescriber_reference: string | null
+          quantity_dispensed: number
+          quantity_received: number
+          recorded_by: string | null
+          variance: number | null
+        }
+        Insert: {
+          closing_balance?: number
+          compliance_confirmed?: boolean | null
+          created_at?: string
+          id?: string
+          log_date?: string
+          medicine_id: string
+          notes?: string | null
+          opening_balance?: number
+          prescriber_reference?: string | null
+          quantity_dispensed?: number
+          quantity_received?: number
+          recorded_by?: string | null
+          variance?: number | null
+        }
+        Update: {
+          closing_balance?: number
+          compliance_confirmed?: boolean | null
+          created_at?: string
+          id?: string
+          log_date?: string
+          medicine_id?: string
+          notes?: string | null
+          opening_balance?: number
+          prescriber_reference?: string | null
+          quantity_dispensed?: number
+          quantity_received?: number
+          recorded_by?: string | null
+          variance?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "controlled_drugs_log_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medicine_categories: {
         Row: {
           created_at: string
@@ -39,9 +128,11 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_prescription: boolean | null
           medicine_id: string
           notes: string | null
           quantity_sold: number
+          recorded_by: string | null
           sale_date: string
           total_amount: number | null
           unit_price: number
@@ -50,9 +141,11 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_prescription?: boolean | null
           medicine_id: string
           notes?: string | null
           quantity_sold: number
+          recorded_by?: string | null
           sale_date: string
           total_amount?: number | null
           unit_price: number
@@ -61,9 +154,11 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_prescription?: boolean | null
           medicine_id?: string
           notes?: string | null
           quantity_sold?: number
+          recorded_by?: string | null
           sale_date?: string
           total_amount?: number | null
           unit_price?: number
@@ -82,10 +177,12 @@ export type Database = {
       medicines: {
         Row: {
           category_id: string | null
+          cost_price: number | null
           created_at: string
           current_stock: number
           entry_date: string | null
           id: string
+          medicine_type: Database["public"]["Enums"]["medicine_type"] | null
           min_stock_level: number
           name: string
           total_stock: number
@@ -93,10 +190,12 @@ export type Database = {
         }
         Insert: {
           category_id?: string | null
+          cost_price?: number | null
           created_at?: string
           current_stock?: number
           entry_date?: string | null
           id?: string
+          medicine_type?: Database["public"]["Enums"]["medicine_type"] | null
           min_stock_level?: number
           name: string
           total_stock?: number
@@ -104,10 +203,12 @@ export type Database = {
         }
         Update: {
           category_id?: string | null
+          cost_price?: number | null
           created_at?: string
           current_stock?: number
           entry_date?: string | null
           id?: string
+          medicine_type?: Database["public"]["Enums"]["medicine_type"] | null
           min_stock_level?: number
           name?: string
           total_stock?: number
@@ -144,6 +245,50 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_adjustments: {
+        Row: {
+          adjustment_date: string
+          adjustment_type: string
+          created_at: string
+          id: string
+          medicine_id: string
+          notes: string | null
+          quantity: number
+          recorded_by: string | null
+          value: number | null
+        }
+        Insert: {
+          adjustment_date?: string
+          adjustment_type: string
+          created_at?: string
+          id?: string
+          medicine_id: string
+          notes?: string | null
+          quantity: number
+          recorded_by?: string | null
+          value?: number | null
+        }
+        Update: {
+          adjustment_date?: string
+          adjustment_type?: string
+          created_at?: string
+          id?: string
+          medicine_id?: string
+          notes?: string | null
+          quantity?: number
+          recorded_by?: string | null
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_adjustments_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_transactions: {
         Row: {
           created_at: string
@@ -151,6 +296,7 @@ export type Database = {
           medicine_id: string
           notes: string | null
           quantity: number
+          recorded_by: string | null
           transaction_date: string
           transaction_type: string
         }
@@ -160,6 +306,7 @@ export type Database = {
           medicine_id: string
           notes?: string | null
           quantity: number
+          recorded_by?: string | null
           transaction_date?: string
           transaction_type: string
         }
@@ -169,6 +316,7 @@ export type Database = {
           medicine_id?: string
           notes?: string | null
           quantity?: number
+          recorded_by?: string | null
           transaction_date?: string
           transaction_type?: string
         }
@@ -219,6 +367,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "worker"
+      medicine_type: "prescription" | "otc" | "controlled" | "medical_supplies"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -347,6 +496,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "worker"],
+      medicine_type: ["prescription", "otc", "controlled", "medical_supplies"],
     },
   },
 } as const
