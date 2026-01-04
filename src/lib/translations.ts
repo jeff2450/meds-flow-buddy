@@ -112,7 +112,7 @@ export const translations = {
     insufficientStock: "Insufficient Stock",
     onlyUnitsAvailable: "Only units available",
     
-    // Monthly Report Page
+    // Monthly Report Page - Basic
     analyzeMonthlyData: "Analyze monthly sales and stock data",
     totalRevenue: "Total Revenue",
     forMonth: "For",
@@ -130,10 +130,110 @@ export const translations = {
     avgPricePerUnit: "Avg Price/Unit",
     noSalesRecordedForMonth: "No sales recorded for this month",
     
+    // Monthly Report - Sales Summary
+    salesSummary: "Sales Summary",
+    totalSalesValue: "Total Sales Value",
+    totalTransactions: "Total Transactions",
+    prescriptionSales: "Prescription Sales",
+    otcSales: "OTC Sales",
+    averageSaleValue: "Average Sale Value",
+    monthComparison: "vs Previous Month",
+    increase: "increase",
+    decrease: "decrease",
+    noChange: "no change",
+    
+    // Monthly Report - Sales Breakdown
+    salesBreakdown: "Sales Breakdown",
+    byCategory: "By Category",
+    byProduct: "By Product",
+    prescriptionMedicines: "Prescription Medicines",
+    otcMedicines: "OTC Medicines",
+    controlledDrugs: "Controlled Drugs",
+    medicalSupplies: "Medical Supplies",
+    topSellingMedicines: "Top 10 Best-Selling",
+    leastSellingMedicines: "Least-Selling Medicines",
+    quantitySoldLabel: "Quantity Sold",
+    revenuePerMedicine: "Revenue per Medicine",
+    
+    // Monthly Report - Inventory Status
+    inventoryStatus: "Inventory Status (Critical)",
+    openingStock: "Opening Stock Balance",
+    closingStock: "Closing Stock Balance",
+    currentStockOnHand: "Current Stock on Hand",
+    stockValueCost: "Stock Value (Cost)",
+    stockValueSelling: "Stock Value (Selling)",
+    outOfStockMedicines: "Out-of-Stock Medicines",
+    lowStockMedicines: "Low-Stock Medicines",
+    overstockedMedicines: "Overstocked Medicines",
+    
+    // Monthly Report - Stock Movement
+    stockMovementSummary: "Stock Movement Summary",
+    totalStockReceived: "Total Stock Received",
+    totalStockIssued: "Total Stock Issued/Sold",
+    netStockChange: "Net Stock Change",
+    stockAdjustments: "Stock Adjustments",
+    
+    // Monthly Report - Controlled Drugs
+    controlledDrugsReport: "Controlled Drugs Report",
+    legalRequirement: "Legal Requirement",
+    openingBalance: "Opening Balance",
+    quantityReceived: "Quantity Received",
+    quantityDispensed: "Quantity Dispensed",
+    closingBalance: "Closing Balance",
+    prescriberReference: "Prescriber Reference",
+    variancesDiscrepancies: "Variances/Discrepancies",
+    complianceConfirmed: "Compliance Confirmed",
+    
+    // Monthly Report - Losses & Returns
+    lossesReturnsAdjustments: "Losses, Returns & Adjustments",
+    damagedMedicines: "Damaged Medicines",
+    expiredWriteOffs: "Expired Write-offs",
+    customerReturns: "Customer Returns",
+    supplierReturns: "Supplier Returns",
+    theftUnexplainedLosses: "Theft/Unexplained Losses",
+    totalLossValue: "Total Loss Value",
+    lossPercentage: "Loss % of Inventory",
+    
+    // Monthly Report - Audit & Activity
+    auditUserActivity: "Audit & User Activity",
+    salesPerStaff: "Sales per Staff",
+    stockIntakePerUser: "Stock Intake per User",
+    adjustmentsPerUser: "Adjustments per User",
+    deletedEditedRecords: "Deleted/Edited Records",
+    adminOnly: "Admin Only",
+    auditTrail: "Audit Trail",
+    timestamp: "Timestamp",
+    actionType: "Action",
+    performedBy: "Performed By",
+    
+    // Monthly Report - Financial Summary
+    financialSummary: "Financial Summary",
+    costOfGoodsSold: "Cost of Goods Sold (COGS)",
+    grossProfit: "Gross Profit",
+    grossProfitMargin: "Gross Profit Margin",
+    highMarginMedicines: "High-Margin Medicines",
+    lowMarginMedicines: "Low-Margin Medicines",
+    
+    // Monthly Report - Export
+    exportCompliance: "Export & Compliance",
+    printPDF: "Print PDF",
+    exportExcel: "Export Excel/CSV",
+    secureArchive: "Secure Archive",
+    pharmacistSignature: "Pharmacist-in-Charge Signature",
+    signatureDate: "Date",
+    signatureName: "Name",
+    
     // Language
     language: "Language",
     english: "English",
     kiswahili: "Kiswahili",
+    
+    // Additional
+    units: "units",
+    currency: "TZS",
+    noData: "No data available",
+    viewDetails: "View Details",
+    transactions: "transactions",
   },
   sw: {
     // Header
@@ -246,7 +346,7 @@ export const translations = {
     insufficientStock: "Hisa Haitoshi",
     onlyUnitsAvailable: "Vitengo vilivyopatikana tu",
     
-    // Monthly Report Page
+    // Monthly Report Page - Basic
     analyzeMonthlyData: "Changanua mauzo ya kila mwezi na data ya hisa",
     totalRevenue: "Jumla ya Mapato",
     forMonth: "Kwa",
@@ -264,10 +364,110 @@ export const translations = {
     avgPricePerUnit: "Bei ya Wastani/Kitengo",
     noSalesRecordedForMonth: "Hakuna mauzo yaliyorekodiwa kwa mwezi huu",
     
+    // Monthly Report - Sales Summary
+    salesSummary: "Muhtasari wa Mauzo",
+    totalSalesValue: "Thamani ya Mauzo",
+    totalTransactions: "Jumla ya Miamala",
+    prescriptionSales: "Mauzo ya Dawa za Daktari",
+    otcSales: "Mauzo ya OTC",
+    averageSaleValue: "Wastani wa Mauzo",
+    monthComparison: "vs Mwezi Uliopita",
+    increase: "ongezeko",
+    decrease: "pungufu",
+    noChange: "hakuna mabadiliko",
+    
+    // Monthly Report - Sales Breakdown
+    salesBreakdown: "Mgawanyo wa Mauzo",
+    byCategory: "Kwa Aina",
+    byProduct: "Kwa Bidhaa",
+    prescriptionMedicines: "Dawa za Daktari",
+    otcMedicines: "Dawa za OTC",
+    controlledDrugs: "Dawa Zinazodhibitiwa",
+    medicalSupplies: "Vifaa vya Matibabu",
+    topSellingMedicines: "Dawa 10 Bora",
+    leastSellingMedicines: "Dawa Zinazouzwa Kidogo",
+    quantitySoldLabel: "Kiasi Kilichouzwa",
+    revenuePerMedicine: "Mapato kwa Dawa",
+    
+    // Monthly Report - Inventory Status
+    inventoryStatus: "Hali ya Hesabu (Muhimu)",
+    openingStock: "Hisa ya Mwanzo",
+    closingStock: "Hisa ya Mwisho",
+    currentStockOnHand: "Hisa ya Sasa",
+    stockValueCost: "Thamani ya Hisa (Gharama)",
+    stockValueSelling: "Thamani ya Hisa (Kuuza)",
+    outOfStockMedicines: "Dawa Zisizo na Hisa",
+    lowStockMedicines: "Dawa za Hisa Chini",
+    overstockedMedicines: "Dawa Zenye Hisa Nyingi",
+    
+    // Monthly Report - Stock Movement
+    stockMovementSummary: "Muhtasari wa Mwendo wa Hisa",
+    totalStockReceived: "Jumla ya Hisa Iliyopokelewa",
+    totalStockIssued: "Jumla ya Hisa Iliyotolewa/Kuzwa",
+    netStockChange: "Mabadiliko ya Hisa",
+    stockAdjustments: "Marekebisho ya Hisa",
+    
+    // Monthly Report - Controlled Drugs
+    controlledDrugsReport: "Ripoti ya Dawa Zinazodhibitiwa",
+    legalRequirement: "Sharti la Kisheria",
+    openingBalance: "Salio la Mwanzo",
+    quantityReceived: "Kiasi Kilichopokelewa",
+    quantityDispensed: "Kiasi Kilichotolewa",
+    closingBalance: "Salio la Mwisho",
+    prescriberReference: "Rejea ya Daktari",
+    variancesDiscrepancies: "Tofauti/Makosa",
+    complianceConfirmed: "Utiifu Umethibitishwa",
+    
+    // Monthly Report - Losses & Returns
+    lossesReturnsAdjustments: "Hasara, Urejeshaji & Marekebisho",
+    damagedMedicines: "Dawa Zilizoharibiwa",
+    expiredWriteOffs: "Dawa Zilizoisha Muda",
+    customerReturns: "Urejeshaji wa Mteja",
+    supplierReturns: "Urejeshaji kwa Muuzaji",
+    theftUnexplainedLosses: "Wizi/Hasara Zisizoeleweka",
+    totalLossValue: "Jumla ya Thamani ya Hasara",
+    lossPercentage: "% ya Hasara ya Hesabu",
+    
+    // Monthly Report - Audit & Activity
+    auditUserActivity: "Ukaguzi & Shughuli za Mtumiaji",
+    salesPerStaff: "Mauzo kwa Mfanyakazi",
+    stockIntakePerUser: "Upokeaji wa Hisa kwa Mtumiaji",
+    adjustmentsPerUser: "Marekebisho kwa Mtumiaji",
+    deletedEditedRecords: "Rekodi Zilizofutwa/Kurekebishwa",
+    adminOnly: "Wasimamizi Tu",
+    auditTrail: "Historia ya Ukaguzi",
+    timestamp: "Wakati",
+    actionType: "Kitendo",
+    performedBy: "Imefanywa na",
+    
+    // Monthly Report - Financial Summary
+    financialSummary: "Muhtasari wa Fedha",
+    costOfGoodsSold: "Gharama ya Bidhaa Zilizouzwa",
+    grossProfit: "Faida Ghafi",
+    grossProfitMargin: "Pembejeo ya Faida Ghafi",
+    highMarginMedicines: "Dawa za Faida Kubwa",
+    lowMarginMedicines: "Dawa za Faida Ndogo",
+    
+    // Monthly Report - Export
+    exportCompliance: "Eksporti & Utiifu",
+    printPDF: "Chapisha PDF",
+    exportExcel: "Eksporti Excel/CSV",
+    secureArchive: "Kumbukumbu Salama",
+    pharmacistSignature: "Sahihi ya Mfamasia Mkuu",
+    signatureDate: "Tarehe",
+    signatureName: "Jina",
+    
     // Language
     language: "Lugha",
     english: "Kiingereza",
     kiswahili: "Kiswahili",
+    
+    // Additional
+    units: "vitengo",
+    currency: "TZS",
+    noData: "Hakuna data",
+    viewDetails: "Tazama Maelezo",
+    transactions: "miamala",
   },
 } as const;
 
