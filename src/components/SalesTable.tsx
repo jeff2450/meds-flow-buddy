@@ -25,7 +25,7 @@ export function SalesTable() {
   const { t, language } = useLanguage();
   const { isAdmin } = useUserRole();
   const queryClient = useQueryClient();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
   const { data: sales, isLoading } = useQuery({
     queryKey: ["medicine-sales", selectedDate ? format(selectedDate, "yyyy-MM-dd") : "all"],
