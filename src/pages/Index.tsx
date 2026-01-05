@@ -5,8 +5,9 @@ import { AddMedicineDialog } from "@/components/AddMedicineDialog";
 import { SalesTable } from "@/components/SalesTable";
 import UserManagement from "@/components/UserManagement";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
+import { SyncStatus } from "@/components/SyncStatus";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, DollarSign, FileText, LogOut, Wifi, WifiOff } from "lucide-react";
+import { Activity, DollarSign, FileText, LogOut, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -136,26 +137,12 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {/* Online/Offline Status */}
-              <Badge 
-                variant={online ? "default" : "secondary"} 
-                className="flex items-center gap-1.5"
-              >
-                {online ? (
-                  <>
-                    <Wifi className="h-3 w-3" />
-                    Online
-                  </>
-                ) : (
-                  <>
-                    <WifiOff className="h-3 w-3" />
-                    Offline
-                  </>
-                )}
-              </Badge>
+              {/* Sync Status */}
+              <SyncStatus />
               
               {isOfflineMode && (
                 <Badge variant="outline" className="text-amber-600 border-amber-300">
+                  <WifiOff className="h-3 w-3 mr-1" />
                   Offline Mode
                 </Badge>
               )}

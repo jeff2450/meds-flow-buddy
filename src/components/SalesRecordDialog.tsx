@@ -20,12 +20,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarIcon, DollarSign } from "lucide-react";
+import { CalendarIcon, DollarSign, WifiOff } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { isOnline } from "@/lib/offlineAuth";
+import { queueOperation, getCachedData, cacheData } from "@/lib/offlineSync";
+
+interface Medicine {
+  id: string;
+  name: string;
+  current_stock: number;
+  min_stock_level: number;
+}
 
 export function SalesRecordDialog() {
   const [open, setOpen] = useState(false);
@@ -35,24 +45,51 @@ export function SalesRecordDialog() {
   const [unitPrice, setUnitPrice] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
+  const [online, setOnline] = useState(isOnline());
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const handleOnline = () => setOnline(true);
+    const handleOffline = () => setOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const { data: medicines } = useQuery({
     queryKey: ["medicines"],
     queryFn: async () => {
+      if (!isOnline()) {
+        // Try to get cached data when offline
+        const cached = await getCachedData<Medicine[]>('medicines');
+        if (cached) return cached;
+        return [];
+      }
+      
       const { data, error } = await supabase
         .from("medicines")
         .select("*")
         .order("name");
       
       if (error) throw error;
-      return data;
+      
+      // Cache for offline use
+      if (data) {
+        await cacheData('medicines', data);
+      }
+      
+      return data as Medicine[];
     },
   });
 
   // Real-time subscription for stock updates
   useEffect(() => {
+    if (!online) return;
+    
     const channel = supabase
       .channel('sales-dialog-stock-updates')
       .on(
@@ -71,7 +108,7 @@ export function SalesRecordDialog() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, online]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,20 +127,33 @@ export function SalesRecordDialog() {
         return;
       }
 
-      const { error } = await supabase.from("medicine_sales").insert({
+      const saleData = {
         medicine_id: medicineId,
         sale_date: format(selectedDate, "yyyy-MM-dd"),
         quantity_sold: parseInt(quantity),
         unit_price: parseFloat(unitPrice),
         notes: notes || null,
-      });
+        is_prescription: false,
+      };
 
-      if (error) throw error;
-
-      toast({
-        title: "Sale recorded",
-        description: "The medicine sale has been recorded successfully.",
-      });
+      if (online) {
+        // Online: insert directly
+        const { error } = await supabase.from("medicine_sales").insert(saleData);
+        if (error) throw error;
+        
+        toast({
+          title: "Sale recorded",
+          description: "The medicine sale has been recorded successfully.",
+        });
+      } else {
+        // Offline: queue for later sync
+        await queueOperation('sale', 'medicine_sales', 'insert', saleData);
+        
+        toast({
+          title: "Sale queued",
+          description: "The sale has been saved locally and will sync when you're back online.",
+        });
+      }
 
       // Reset form
       setMedicineId("");
@@ -113,15 +163,18 @@ export function SalesRecordDialog() {
       setSelectedDate(new Date());
       setOpen(false);
 
-      // Refresh sales and medicines data
-      queryClient.invalidateQueries({ queryKey: ["medicine-sales"] });
-      queryClient.invalidateQueries({ queryKey: ["medicines"] });
-      queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
-    } catch (error: any) {
+      // Refresh data if online
+      if (online) {
+        queryClient.invalidateQueries({ queryKey: ["medicine-sales"] });
+        queryClient.invalidateQueries({ queryKey: ["medicines"] });
+        queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "An error occurred";
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description: message,
       });
     } finally {
       setLoading(false);
@@ -138,9 +191,20 @@ export function SalesRecordDialog() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Record Medicine Sale</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            Record Medicine Sale
+            {!online && (
+              <Badge variant="secondary" className="text-amber-600">
+                <WifiOff className="h-3 w-3 mr-1" />
+                Offline
+              </Badge>
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Record a daily sale for a specific medicine
+            {online 
+              ? "Record a daily sale for a specific medicine"
+              : "Sale will be saved locally and synced when online"
+            }
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -271,7 +335,7 @@ export function SalesRecordDialog() {
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Recording..." : "Record Sale"}
+              {loading ? "Recording..." : online ? "Record Sale" : "Save Offline"}
             </Button>
           </div>
         </form>

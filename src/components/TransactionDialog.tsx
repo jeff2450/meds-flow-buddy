@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -21,10 +22,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { transactionSchema } from "@/lib/validations";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { isOnline } from "@/lib/offlineAuth";
+import { queueOperation, getCachedData, cacheData } from "@/lib/offlineSync";
+
+interface Medicine {
+  id: string;
+  name: string;
+  category_id: string | null;
+  min_stock_level: number;
+  cost_price: number | null;
+  medicine_type: 'prescription' | 'otc' | 'controlled' | 'medical_supplies' | null;
+}
 
 export const TransactionDialog = () => {
   const { t, language } = useLanguage();
@@ -33,17 +45,40 @@ export const TransactionDialog = () => {
   const [quantity, setQuantity] = useState("");
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [online, setOnline] = useState(isOnline());
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const handleOnline = () => setOnline(true);
+    const handleOffline = () => setOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const { data: medicines } = useQuery({
     queryKey: ["medicines"],
     queryFn: async () => {
+      if (!isOnline()) {
+        const cached = await getCachedData<Medicine[]>('medicines');
+        if (cached) return cached;
+        return [];
+      }
+      
       const { data, error } = await supabase
         .from("medicines")
         .select("*")
         .order("name");
       if (error) throw error;
-      return data;
+      
+      if (data) {
+        await cacheData('medicines', data);
+      }
+      
+      return data as Medicine[];
     },
   });
 
@@ -74,28 +109,43 @@ export const TransactionDialog = () => {
       return;
     }
 
-    const { error: insertError } = await supabase
-      .from("medicines")
-      .insert([{
-        name: template.name,
-        category_id: template.category_id,
-        current_stock: result.data.quantity,
-        total_stock: result.data.quantity,
-        min_stock_level: template.min_stock_level,
-        entry_date: new Date().toISOString(),
-      }]);
+    const batchData = {
+      name: template.name,
+      category_id: template.category_id,
+      current_stock: result.data.quantity,
+      total_stock: result.data.quantity,
+      min_stock_level: template.min_stock_level,
+      entry_date: new Date().toISOString(),
+      cost_price: template.cost_price,
+      medicine_type: template.medicine_type,
+    };
 
-    if (insertError) {
-      console.error("Error creating batch:", insertError);
-      toast.error(language === "sw" ? "Imeshindwa kuunda kundi jipya" : "Failed to create new batch");
-      return;
+    if (online) {
+      const { error: insertError } = await supabase
+        .from("medicines")
+        .insert([batchData]);
+
+      if (insertError) {
+        console.error("Error creating batch:", insertError);
+        toast.error(language === "sw" ? "Imeshindwa kuunda kundi jipya" : "Failed to create new batch");
+        return;
+      }
+
+      toast.success(language === "sw" ? "Kundi jipya limeundwa kwa ufanisi" : "New batch created successfully");
+    } else {
+      await queueOperation('transaction', 'medicines', 'insert', batchData);
+      toast.success(
+        language === "sw" 
+          ? "Kundi limehifadhiwa ndani ya mtambo - litasawazishwa mtandaoni" 
+          : "Batch saved offline - will sync when online"
+      );
     }
 
-    toast.success(language === "sw" ? "Kundi jipya limeundwa kwa ufanisi" : "New batch created successfully");
-
-    queryClient.invalidateQueries({ queryKey: ["medicines"] });
-    queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
-    queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
+    if (online) {
+      queryClient.invalidateQueries({ queryKey: ["medicines"] });
+      queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
+    }
     
     setMedicineId("");
     setQuantity("");
@@ -123,9 +173,20 @@ export const TransactionDialog = () => {
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{t("stockIntake")}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              {t("stockIntake")}
+              {!online && (
+                <Badge variant="secondary" className="text-amber-600">
+                  <WifiOff className="h-3 w-3 mr-1" />
+                  Offline
+                </Badge>
+              )}
+            </DialogTitle>
             <DialogDescription>
-              {t("recordStockIntake")}
+              {online 
+                ? t("recordStockIntake")
+                : (language === "sw" ? "Itahifadhiwa ndani ya mtambo na kusawazishwa baadaye" : "Will be saved locally and synced later")
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -188,7 +249,9 @@ export const TransactionDialog = () => {
             >
               {t("cancel")}
             </Button>
-            <Button type="submit">{t("recordIntake")}</Button>
+            <Button type="submit">
+              {online ? t("recordIntake") : (language === "sw" ? "Hifadhi Nje ya Mtandao" : "Save Offline")}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
