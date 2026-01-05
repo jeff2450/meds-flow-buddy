@@ -357,6 +357,15 @@ export type Database = {
     }
     Functions: {
       get_next_folio_number: { Args: never; Returns: number }
+      get_user_list_for_admin: {
+        Args: never
+        Returns: {
+          created_at: string
+          email_masked: string
+          full_name: string
+          id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

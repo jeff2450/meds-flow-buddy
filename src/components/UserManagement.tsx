@@ -20,7 +20,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Profile {
   id: string;
-  email: string | null;
+  email_masked: string | null;
   full_name: string | null;
   created_at: string;
 }
@@ -51,10 +51,9 @@ export default function UserManagement() {
 
   const fetchUsers = async () => {
     try {
+      // Use secure RPC function that masks email addresses
       const { data: profilesData, error: profilesError } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .rpc("get_user_list_for_admin");
 
       if (profilesError) throw profilesError;
 
@@ -64,7 +63,7 @@ export default function UserManagement() {
 
       if (rolesError) throw rolesError;
 
-      setProfiles(profilesData || []);
+      setProfiles((profilesData as Profile[]) || []);
       setUserRoles(rolesData || []);
     } catch (error: any) {
       toast({
@@ -313,7 +312,7 @@ export default function UserManagement() {
               >
                 <div className="flex-1">
                   <div className="font-medium">{profile.full_name || (language === "sw" ? "Hakuna jina" : "No name")}</div>
-                  <div className="text-sm text-muted-foreground">{profile.email}</div>
+                  <div className="text-sm text-muted-foreground">{profile.email_masked}</div>
                   <div className="flex gap-2 mt-2">
                     {hasWorkerRole && <Badge variant="secondary">{t("worker")}</Badge>}
                     {hasAdminRole && <Badge variant="default">{t("admin")}</Badge>}
