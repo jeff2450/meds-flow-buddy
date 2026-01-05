@@ -6,35 +6,91 @@ import { SalesTable } from "@/components/SalesTable";
 import UserManagement from "@/components/UserManagement";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, DollarSign, FileText, LogOut } from "lucide-react";
+import { Activity, DollarSign, FileText, LogOut, Wifi, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { 
+  getOfflineSession, 
+  clearOfflineSession, 
+  isOnline 
+} from "@/lib/offlineAuth";
 
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [online, setOnline] = useState(isOnline());
+  const [offlineUser, setOfflineUser] = useState<{
+    userId: string;
+    email: string;
+    fullName: string | null;
+    roles: string[];
+  } | null>(null);
   const { isAdmin, isWorker, hasAnyRole, isLoading: rolesLoading } = useUserRole();
 
-  const canPerformActions = isAdmin || isWorker;
+  // Check offline mode roles
+  const offlineIsAdmin = offlineUser?.roles.includes('admin') ?? false;
+  const offlineIsWorker = offlineUser?.roles.includes('worker') ?? false;
+  
+  const canPerformActions = isOfflineMode 
+    ? (offlineIsAdmin || offlineIsWorker)
+    : (isAdmin || isWorker);
+
+  const showAdminTab = isOfflineMode ? offlineIsAdmin : isAdmin;
+
+  // Handle online/offline status changes
+  useEffect(() => {
+    const handleOnline = () => setOnline(true);
+    const handleOffline = () => setOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        navigate("/auth");
-      } else {
+    const checkAuth = async () => {
+      // First check Supabase session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        setIsOfflineMode(false);
         setLoading(false);
+        return;
       }
-    });
+      
+      // If no Supabase session, check for offline session
+      const offlineSession = getOfflineSession();
+      if (offlineSession) {
+        setIsOfflineMode(true);
+        setOfflineUser(offlineSession);
+        setLoading(false);
+        return;
+      }
+      
+      // No session at all, redirect to auth
+      navigate("/auth");
+    };
+    
+    checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) {
+      if (session) {
+        setIsOfflineMode(false);
+        clearOfflineSession();
+      } else if (!getOfflineSession()) {
         navigate("/auth");
       }
     });
@@ -43,7 +99,12 @@ const Index = () => {
   }, [navigate]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    if (online) {
+      await supabase.auth.signOut();
+    }
+    clearOfflineSession();
+    setIsOfflineMode(false);
+    setOfflineUser(null);
     toast({
       title: t("logout"),
       description: t("success"),
@@ -75,6 +136,30 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {/* Online/Offline Status */}
+              <Badge 
+                variant={online ? "default" : "secondary"} 
+                className="flex items-center gap-1.5"
+              >
+                {online ? (
+                  <>
+                    <Wifi className="h-3 w-3" />
+                    Online
+                  </>
+                ) : (
+                  <>
+                    <WifiOff className="h-3 w-3" />
+                    Offline
+                  </>
+                )}
+              </Badge>
+              
+              {isOfflineMode && (
+                <Badge variant="outline" className="text-amber-600 border-amber-300">
+                  Offline Mode
+                </Badge>
+              )}
+              
               <LanguageSwitch />
               <Button variant="outline" onClick={() => navigate("/monthly-report")}>
                 <FileText className="h-4 w-4 mr-2" />
@@ -99,13 +184,26 @@ const Index = () => {
         </div>
       </header>
 
+      {/* Offline Mode Banner */}
+      {isOfflineMode && (
+        <div className="bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800 px-4 py-2">
+          <p className="text-sm text-amber-800 dark:text-amber-200 text-center">
+            <WifiOff className="inline h-4 w-4 mr-1" />
+            You're working in offline mode. Data will sync when you're back online.
+            {offlineUser?.fullName && (
+              <span className="ml-2 font-medium">Logged in as: {offlineUser.fullName}</span>
+            )}
+          </p>
+        </div>
+      )}
+
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="inventory" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="inventory">{t("inventory")}</TabsTrigger>
             <TabsTrigger value="sales">{t("sales")}</TabsTrigger>
-            {isAdmin && <TabsTrigger value="users">{t("userManagement")}</TabsTrigger>}
+            {showAdminTab && <TabsTrigger value="users">{t("userManagement")}</TabsTrigger>}
           </TabsList>
           <TabsContent value="inventory" className="space-y-8">
             <section>
@@ -119,7 +217,7 @@ const Index = () => {
           <TabsContent value="sales" className="space-y-8">
             <SalesTable />
           </TabsContent>
-          {isAdmin && (
+          {showAdminTab && (
             <TabsContent value="users">
               <UserManagement />
             </TabsContent>
