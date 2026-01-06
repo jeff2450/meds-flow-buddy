@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { Pill, Wifi, WifiOff } from "lucide-react";
+import { Pill, Wifi, WifiOff, Shield, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { 
   isOnline, 
@@ -21,11 +21,14 @@ import {
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 
+type LoginRole = "worker" | "admin";
+
 export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [online, setOnline] = useState(isOnline());
+  const [selectedRole, setSelectedRole] = useState<LoginRole>("worker");
 
   useEffect(() => {
     const handleOnline = () => setOnline(true);
@@ -98,6 +101,20 @@ export default function Auth() {
             .select('role')
             .eq('user_id', data.user.id);
 
+          const userRoles = roles?.map(r => r.role) || [];
+          
+          // Verify user has the selected role
+          if (!userRoles.includes(selectedRole)) {
+            await supabase.auth.signOut();
+            toast({
+              variant: "destructive",
+              title: "Access denied",
+              description: `You don't have ${selectedRole === 'admin' ? 'Admin' : 'Staff'} access. Please select the correct role.`,
+            });
+            setLoading(false);
+            return;
+          }
+
           const { data: profile } = await supabase
             .from('profiles')
             .select('full_name')
@@ -110,12 +127,12 @@ export default function Auth() {
             password,
             data.user.id,
             profile?.full_name || null,
-            roles?.map(r => r.role) || []
+            userRoles
           );
 
           toast({
             title: "Login successful",
-            description: "Credentials cached for offline access.",
+            description: `Logged in as ${selectedRole === 'admin' ? 'Admin' : 'Staff'}. Credentials cached for offline access.`,
           });
         }
       } else {
@@ -123,10 +140,21 @@ export default function Auth() {
         const result = await verifyOfflineCredentials(email, password);
         
         if (result.success && result.user) {
+          // Verify user has the selected role in cached credentials
+          if (!result.user.roles.includes(selectedRole)) {
+            toast({
+              variant: "destructive",
+              title: "Access denied",
+              description: `You don't have ${selectedRole === 'admin' ? 'Admin' : 'Staff'} access with cached credentials.`,
+            });
+            setLoading(false);
+            return;
+          }
+          
           setOfflineSession(result.user);
           toast({
             title: "Offline login successful",
-            description: "You're working in offline mode.",
+            description: `You're working in offline mode as ${selectedRole === 'admin' ? 'Admin' : 'Staff'}.`,
           });
           navigate("/");
         } else {
@@ -193,7 +221,7 @@ export default function Auth() {
       } else {
         toast({
           title: "Account created",
-          description: "Please contact an admin to assign you a worker role.",
+          description: "You've been assigned as a Staff member. Contact an admin for Admin access.",
         });
       }
     } catch (error) {
@@ -219,7 +247,7 @@ export default function Auth() {
             </div>
           </div>
           <CardTitle className="text-2xl">Pharmaceutical Inventory</CardTitle>
-          <CardDescription>Worker Access Portal</CardDescription>
+          <CardDescription>Select your role to continue</CardDescription>
           
           {/* Online/Offline Status */}
           <div className="flex justify-center mt-3">
@@ -242,6 +270,31 @@ export default function Auth() {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Role Selection */}
+          <div className="mb-6">
+            <Label className="text-sm font-medium mb-3 block">Login as:</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                type="button"
+                variant={selectedRole === "worker" ? "default" : "outline"}
+                className="h-20 flex-col gap-2"
+                onClick={() => setSelectedRole("worker")}
+              >
+                <User className="h-6 w-6" />
+                <span>Staff</span>
+              </Button>
+              <Button
+                type="button"
+                variant={selectedRole === "admin" ? "default" : "outline"}
+                className="h-20 flex-col gap-2"
+                onClick={() => setSelectedRole("admin")}
+              >
+                <Shield className="h-6 w-6" />
+                <span>Admin</span>
+              </Button>
+            </div>
+          </div>
+
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
@@ -262,7 +315,7 @@ export default function Auth() {
                     id="login-email"
                     name="login-email"
                     type="email"
-                    placeholder="worker@pharmacy.com"
+                    placeholder={selectedRole === "admin" ? "admin@pharmacy.com" : "staff@pharmacy.com"}
                     required
                   />
                 </div>
@@ -276,13 +329,16 @@ export default function Auth() {
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Signing in..." : online ? "Sign In" : "Sign In Offline"}
+                  {loading ? "Signing in..." : `Sign In as ${selectedRole === 'admin' ? 'Admin' : 'Staff'}`}
                 </Button>
               </form>
             </TabsContent>
             
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
+                <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground mb-2">
+                  <p>New accounts are automatically assigned Staff role. Contact an admin for Admin access.</p>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-name">Full Name</Label>
                   <Input
@@ -299,7 +355,7 @@ export default function Auth() {
                     id="signup-email"
                     name="signup-email"
                     type="email"
-                    placeholder="worker@pharmacy.com"
+                    placeholder="staff@pharmacy.com"
                     required
                   />
                 </div>
@@ -313,11 +369,8 @@ export default function Auth() {
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Creating account..." : "Create Account"}
+                  {loading ? "Creating account..." : "Create Staff Account"}
                 </Button>
-                <p className="text-sm text-muted-foreground text-center">
-                  Note: An admin must assign you a worker role before you can access the system.
-                </p>
               </form>
             </TabsContent>
           </Tabs>
