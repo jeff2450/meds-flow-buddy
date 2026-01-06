@@ -234,6 +234,15 @@ export const translations = {
     noData: "No data available",
     viewDetails: "View Details",
     transactions: "transactions",
+    
+    // Staff Performance (Admin)
+    totalTeamSales: "Total Team Sales",
+    topPerformer: "Top Performer",
+    averageSalesPerStaff: "Avg. Sales per Staff",
+    performance: "Performance",
+    teamShare: "Team Share",
+    date: "Date",
+    noSalesDetails: "No sales details available",
   },
   sw: {
     // Header
@@ -468,6 +477,15 @@ export const translations = {
     noData: "Hakuna data",
     viewDetails: "Tazama Maelezo",
     transactions: "miamala",
+    
+    // Staff Performance (Admin)
+    totalTeamSales: "Jumla ya Mauzo ya Timu",
+    topPerformer: "Mwenye Utendaji Bora",
+    averageSalesPerStaff: "Wastani wa Mauzo kwa Mfanyakazi",
+    performance: "Utendaji",
+    teamShare: "Sehemu ya Timu",
+    date: "Tarehe",
+    noSalesDetails: "Hakuna maelezo ya mauzo",
   },
 } as const;
 
