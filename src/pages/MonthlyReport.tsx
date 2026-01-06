@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -28,6 +28,7 @@ const MonthlyReport = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { isAdmin } = useUserRole();
+  const queryClient = useQueryClient();
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [authChecked, setAuthChecked] = useState(false);
 
@@ -290,15 +291,26 @@ const MonthlyReport = () => {
   lossData.totalLossValue = lossData.damaged.value + lossData.expired.value + lossData.theft.value;
   lossData.lossPercentage = stockValueCost > 0 ? (lossData.totalLossValue / stockValueCost) * 100 : 0;
 
-  // Staff Activity (simplified - would need recorded_by to be populated)
-  const staffActivities = profilesData?.map(profile => ({
-    name: profile.full_name || '',
-    email: profile.email || '',
-    salesCount: salesData?.filter(s => s.recorded_by === profile.id).length || 0,
-    salesValue: salesData?.filter(s => s.recorded_by === profile.id).reduce((sum, s) => sum + Number(s.total_amount || 0), 0) || 0,
-    intakeCount: transactionsData?.filter(t => t.recorded_by === profile.id && t.transaction_type === 'intake').length || 0,
-    adjustmentCount: adjustmentsData?.filter(a => a.recorded_by === profile.id).length || 0,
-  })).filter(s => s.salesCount > 0 || s.intakeCount > 0 || s.adjustmentCount > 0) || [];
+  // Staff Activity with sales details for admin evaluation
+  const staffActivities = profilesData?.map(profile => {
+    const staffSales = salesData?.filter(s => s.recorded_by === profile.id) || [];
+    return {
+      name: profile.full_name || '',
+      email: profile.email || '',
+      salesCount: staffSales.length,
+      salesValue: staffSales.reduce((sum, s) => sum + Number(s.total_amount || 0), 0),
+      intakeCount: transactionsData?.filter(t => t.recorded_by === profile.id && t.transaction_type === 'intake').length || 0,
+      adjustmentCount: adjustmentsData?.filter(a => a.recorded_by === profile.id).length || 0,
+      // Include individual sales for admin to view/delete
+      sales: staffSales.map(s => ({
+        id: s.id,
+        medicine_name: s.medicines?.name || 'Unknown',
+        quantity_sold: s.quantity_sold,
+        total_amount: Number(s.total_amount || 0),
+        sale_date: s.sale_date,
+      })),
+    };
+  }).filter(s => s.salesCount > 0 || s.intakeCount > 0 || s.adjustmentCount > 0) || [];
 
   // Audit Logs
   const auditLogs = auditLogsData?.map(log => ({
@@ -326,6 +338,25 @@ const MonthlyReport = () => {
   }));
   const highMarginMedicines = medicineMargins.filter(m => m.margin > 0).sort((a, b) => b.margin - a.margin);
   const lowMarginMedicines = medicineMargins.filter(m => m.margin >= 0).sort((a, b) => a.margin - b.margin);
+
+  // Delete sale handler (admin only)
+  const handleDeleteSale = async (saleId: string) => {
+    if (!isAdmin) return;
+    
+    try {
+      const { error } = await supabase
+        .from("medicine_sales")
+        .delete()
+        .eq("id", saleId);
+
+      if (error) throw error;
+
+      toast.success(t("success"));
+      queryClient.invalidateQueries({ queryKey: ["monthly-sales"] });
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
 
   // Export handlers
   const handleExportPDF = () => {
@@ -450,6 +481,7 @@ const MonthlyReport = () => {
           staffActivities={staffActivities}
           auditLogs={auditLogs}
           isAdmin={isAdmin}
+          onDeleteSale={isAdmin ? handleDeleteSale : undefined}
         />
 
         {/* 11. Financial Summary */}
