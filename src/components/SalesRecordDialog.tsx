@@ -136,24 +136,13 @@ export function SalesRecordDialog() {
         is_prescription: false,
       };
 
-      if (online) {
-        // Online: insert directly
-        const { error } = await supabase.from("medicine_sales").insert(saleData);
-        if (error) throw error;
-        
-        toast({
-          title: "Sale recorded",
-          description: "The medicine sale has been recorded successfully.",
-        });
-      } else {
-        // Offline: queue for later sync
-        await queueOperation('sale', 'medicine_sales', 'insert', saleData);
-        
-        toast({
-          title: "Sale queued",
-          description: "The sale has been saved locally and will sync when you're back online.",
-        });
-      }
+      // Always queue operation first (immediate save)
+      await queueOperation('sale', 'medicine_sales', 'insert', saleData);
+      
+      toast({
+        title: "Sale recorded",
+        description: "The medicine sale has been saved successfully.",
+      });
 
       // Reset form
       setMedicineId("");
@@ -163,12 +152,10 @@ export function SalesRecordDialog() {
       setSelectedDate(new Date());
       setOpen(false);
 
-      // Refresh data if online
-      if (online) {
-        queryClient.invalidateQueries({ queryKey: ["medicine-sales"] });
-        queryClient.invalidateQueries({ queryKey: ["medicines"] });
-        queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
-      }
+      // Invalidate queries to refresh UI
+      queryClient.invalidateQueries({ queryKey: ["medicine-sales"] });
+      queryClient.invalidateQueries({ queryKey: ["medicines"] });
+      queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "An error occurred";
       toast({
@@ -335,7 +322,7 @@ export function SalesRecordDialog() {
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Recording..." : online ? "Record Sale" : "Save Offline"}
+              {loading ? "Recording..." : "Record Sale"}
             </Button>
           </div>
         </form>
