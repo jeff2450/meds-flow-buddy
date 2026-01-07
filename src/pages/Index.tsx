@@ -6,6 +6,8 @@ import { SalesTable } from "@/components/SalesTable";
 import UserManagement from "@/components/UserManagement";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { SyncStatus } from "@/components/SyncStatus";
+import { AttendanceTracker } from "@/components/AttendanceTracker";
+import { AttendanceManagement } from "@/components/AttendanceManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Activity, DollarSign, FileText, LogOut, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -190,12 +192,18 @@ const Index = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="inventory">{t("inventory")}</TabsTrigger>
             <TabsTrigger value="sales">{t("sales")}</TabsTrigger>
+            {showAdminTab && <TabsTrigger value="attendance">{t("attendance")}</TabsTrigger>}
             {showAdminTab && <TabsTrigger value="users">{t("userManagement")}</TabsTrigger>}
           </TabsList>
           <TabsContent value="inventory" className="space-y-8">
-            <section>
-              <h2 className="text-xl font-semibold mb-4">{t("overview")}</h2>
-              <DashboardStats />
+            <section className="flex gap-6">
+              <div className="flex-1">
+                <h2 className="text-xl font-semibold mb-4">{t("overview")}</h2>
+                <DashboardStats />
+              </div>
+              {canPerformActions && !isOfflineMode && (
+                <AttendanceTracker />
+              )}
             </section>
             <section>
               <MedicineTable />
@@ -204,6 +212,11 @@ const Index = () => {
           <TabsContent value="sales" className="space-y-8">
             <SalesTable />
           </TabsContent>
+          {showAdminTab && (
+            <TabsContent value="attendance">
+              <AttendanceManagement />
+            </TabsContent>
+          )}
           {showAdminTab && (
             <TabsContent value="users">
               <UserManagement />

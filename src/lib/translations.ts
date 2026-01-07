@@ -243,6 +243,21 @@ export const translations = {
     teamShare: "Team Share",
     date: "Date",
     noSalesDetails: "No sales details available",
+    
+    // Attendance
+    attendance: "Attendance",
+    clockIn: "Clock In",
+    clockOut: "Clock Out",
+    clockedInAt: "Clocked in at",
+    status: "Status",
+    attendanceManagement: "Attendance Management",
+    monitorStaffAttendance: "Monitor staff attendance and work hours",
+    staffMember: "Staff Member",
+    duration: "Duration",
+    
+    // Inventory View
+    allInventory: "All Inventory",
+    viewAllProducts: "View all products in inventory",
   },
   sw: {
     // Header
@@ -486,6 +501,21 @@ export const translations = {
     teamShare: "Sehemu ya Timu",
     date: "Tarehe",
     noSalesDetails: "Hakuna maelezo ya mauzo",
+    
+    // Attendance
+    attendance: "Mahudhurio",
+    clockIn: "Ingia Kazini",
+    clockOut: "Toka Kazini",
+    clockedInAt: "Uliingia saa",
+    status: "Hali",
+    attendanceManagement: "Usimamizi wa Mahudhurio",
+    monitorStaffAttendance: "Fuatilia mahudhurio na masaa ya kazi",
+    staffMember: "Mfanyakazi",
+    duration: "Muda",
+    
+    // Inventory View
+    allInventory: "Hesabu Yote",
+    viewAllProducts: "Tazama bidhaa zote kwenye hesabu",
   },
 } as const;
 
