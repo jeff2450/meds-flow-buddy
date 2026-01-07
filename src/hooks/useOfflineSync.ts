@@ -62,7 +62,7 @@ export function useOfflineSync() {
     }
   }, [toast, queryClient, updatePendingCount]);
 
-  // Queue a new operation
+  // Queue a new operation and trigger background sync if online
   const queue = useCallback(async (
     type: OperationType,
     table: string,
@@ -72,9 +72,10 @@ export function useOfflineSync() {
     await queueOperation(type, table, action, data);
     await updatePendingCount();
     
-    // If online, try to sync immediately
+    // Trigger background sync immediately if online (don't wait)
     if (navigator.onLine) {
-      sync();
+      // Use setTimeout to not block the UI
+      setTimeout(() => sync(), 0);
     }
   }, [updatePendingCount, sync]);
 

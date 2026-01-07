@@ -120,32 +120,14 @@ export const TransactionDialog = () => {
       medicine_type: template.medicine_type,
     };
 
-    if (online) {
-      const { error: insertError } = await supabase
-        .from("medicines")
-        .insert([batchData]);
+    // Always queue operation first (immediate save)
+    await queueOperation('transaction', 'medicines', 'insert', batchData);
+    toast.success(language === "sw" ? "Kundi jipya limeundwa kwa ufanisi" : "New batch created successfully");
 
-      if (insertError) {
-        console.error("Error creating batch:", insertError);
-        toast.error(language === "sw" ? "Imeshindwa kuunda kundi jipya" : "Failed to create new batch");
-        return;
-      }
-
-      toast.success(language === "sw" ? "Kundi jipya limeundwa kwa ufanisi" : "New batch created successfully");
-    } else {
-      await queueOperation('transaction', 'medicines', 'insert', batchData);
-      toast.success(
-        language === "sw" 
-          ? "Kundi limehifadhiwa ndani ya mtambo - litasawazishwa mtandaoni" 
-          : "Batch saved offline - will sync when online"
-      );
-    }
-
-    if (online) {
-      queryClient.invalidateQueries({ queryKey: ["medicines"] });
-      queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
-      queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
-    }
+    // Invalidate queries to refresh UI
+    queryClient.invalidateQueries({ queryKey: ["medicines"] });
+    queryClient.invalidateQueries({ queryKey: ["medicines-with-categories"] });
+    queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
     
     setMedicineId("");
     setQuantity("");
@@ -250,7 +232,7 @@ export const TransactionDialog = () => {
               {t("cancel")}
             </Button>
             <Button type="submit">
-              {online ? t("recordIntake") : (language === "sw" ? "Hifadhi Nje ya Mtandao" : "Save Offline")}
+              {t("recordIntake")}
             </Button>
           </DialogFooter>
         </form>
