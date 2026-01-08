@@ -103,7 +103,7 @@ export function useOfflineSync() {
     };
   }, [sync, updatePendingCount]);
 
-  // Periodic sync check when online
+  // Periodic sync check when online (every 10 seconds for faster sync)
   useEffect(() => {
     if (!online) return;
     
@@ -111,10 +111,22 @@ export function useOfflineSync() {
       if (pendingCount > 0 && !syncing) {
         sync();
       }
-    }, 30000); // Check every 30 seconds
+    }, 10000); // Check every 10 seconds
 
     return () => clearInterval(interval);
   }, [online, pendingCount, syncing, sync]);
+
+  // Sync when tab becomes visible (user returns to app)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && navigator.onLine && pendingCount > 0) {
+        sync();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [pendingCount, sync]);
 
   return {
     online,
