@@ -150,10 +150,12 @@ const Index = () => {
               )}
               
               <LanguageSwitch />
-              <Button variant="outline" onClick={() => navigate("/monthly-report")}>
-                <FileText className="h-4 w-4 mr-2" />
-                {t("monthlyReport")}
-              </Button>
+              {showAdminTab && (
+                <Button variant="outline" onClick={() => navigate("/monthly-report")}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  {t("monthlyReport")}
+                </Button>
+              )}
               {canPerformActions && (
                 <>
                   <Button onClick={() => navigate("/sales-recording")}>

@@ -27,7 +27,7 @@ import ExportComplianceSection from "@/components/report/ExportComplianceSection
 const MonthlyReport = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { isAdmin } = useUserRole();
+  const { isAdmin, isLoading: roleLoading } = useUserRole();
   const queryClient = useQueryClient();
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [authChecked, setAuthChecked] = useState(false);
@@ -49,6 +49,14 @@ const MonthlyReport = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Redirect non-admin users
+  useEffect(() => {
+    if (authChecked && !roleLoading && !isAdmin) {
+      toast.error("Access denied. Only administrators can view the monthly report.");
+      navigate("/");
+    }
+  }, [authChecked, roleLoading, isAdmin, navigate]);
 
   const monthStart = startOfMonth(selectedMonth);
   const monthEnd = endOfMonth(selectedMonth);
@@ -379,7 +387,12 @@ const MonthlyReport = () => {
     toast.success("CSV exported successfully");
   };
 
-  if (!authChecked) {
+  if (!authChecked || roleLoading) {
+    return null;
+  }
+
+  // Don't render for non-admin users
+  if (!isAdmin) {
     return null;
   }
 
