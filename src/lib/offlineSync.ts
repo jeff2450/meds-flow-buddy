@@ -1,12 +1,16 @@
 // Offline data sync queue using IndexedDB
 // Queues operations when offline and syncs when back online
+// Also stores local copies of sales and stock data for offline access
 
 import { supabase } from "@/integrations/supabase/client";
 
 const DB_NAME = 'pharm_offline_sync';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Upgraded to add new stores
 const QUEUE_STORE = 'pending_operations';
 const CACHE_STORE = 'cached_data';
+const SALES_STORE = 'offline_sales';
+const MEDICINES_STORE = 'offline_medicines';
+const STOCK_STORE = 'offline_stock_transactions';
 
 export type OperationType = 'sale' | 'transaction' | 'medicine' | 'adjustment';
 
@@ -20,6 +24,47 @@ export interface PendingOperation {
   retryCount: number;
 }
 
+// Interfaces for offline data
+export interface OfflineSale {
+  id: string;
+  medicine_id: string;
+  medicine_name?: string;
+  sale_date: string;
+  quantity_sold: number;
+  unit_price: number;
+  total_amount: number;
+  notes?: string;
+  is_prescription?: boolean;
+  created_at: number;
+  synced: boolean;
+}
+
+export interface OfflineMedicine {
+  id: string;
+  name: string;
+  category_id?: string;
+  category_name?: string;
+  current_stock: number;
+  total_stock: number;
+  min_stock_level: number;
+  cost_price?: number;
+  medicine_type?: string;
+  entry_date?: string;
+  updated_at: number;
+}
+
+export interface OfflineStockTransaction {
+  id: string;
+  medicine_id: string;
+  medicine_name?: string;
+  quantity: number;
+  transaction_type: string;
+  transaction_date: string;
+  notes?: string;
+  created_at: number;
+  synced: boolean;
+}
+
 // Open IndexedDB connection
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -31,14 +76,39 @@ function openDB(): Promise<IDBDatabase> {
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
       
+      // Pending operations store
       if (!db.objectStoreNames.contains(QUEUE_STORE)) {
         const store = db.createObjectStore(QUEUE_STORE, { keyPath: 'id' });
         store.createIndex('createdAt', 'createdAt', { unique: false });
         store.createIndex('type', 'type', { unique: false });
       }
       
+      // Cache store
       if (!db.objectStoreNames.contains(CACHE_STORE)) {
         db.createObjectStore(CACHE_STORE, { keyPath: 'key' });
+      }
+      
+      // Offline sales store
+      if (!db.objectStoreNames.contains(SALES_STORE)) {
+        const salesStore = db.createObjectStore(SALES_STORE, { keyPath: 'id' });
+        salesStore.createIndex('sale_date', 'sale_date', { unique: false });
+        salesStore.createIndex('synced', 'synced', { unique: false });
+        salesStore.createIndex('medicine_id', 'medicine_id', { unique: false });
+      }
+      
+      // Offline medicines store
+      if (!db.objectStoreNames.contains(MEDICINES_STORE)) {
+        const medicinesStore = db.createObjectStore(MEDICINES_STORE, { keyPath: 'id' });
+        medicinesStore.createIndex('name', 'name', { unique: false });
+        medicinesStore.createIndex('category_id', 'category_id', { unique: false });
+      }
+      
+      // Offline stock transactions store
+      if (!db.objectStoreNames.contains(STOCK_STORE)) {
+        const stockStore = db.createObjectStore(STOCK_STORE, { keyPath: 'id' });
+        stockStore.createIndex('transaction_date', 'transaction_date', { unique: false });
+        stockStore.createIndex('synced', 'synced', { unique: false });
+        stockStore.createIndex('medicine_id', 'medicine_id', { unique: false });
       }
     };
   });
@@ -301,4 +371,286 @@ export async function clearPendingOperations(): Promise<void> {
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
+}
+
+// ==================== OFFLINE SALES OPERATIONS ====================
+
+// Save a sale to offline storage
+export async function saveOfflineSale(sale: OfflineSale): Promise<void> {
+  const db = await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([SALES_STORE], 'readwrite');
+    const store = transaction.objectStore(SALES_STORE);
+    const request = store.put(sale);
+    
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Get all offline sales
+export async function getOfflineSales(): Promise<OfflineSale[]> {
+  const db = await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([SALES_STORE], 'readonly');
+    const store = transaction.objectStore(SALES_STORE);
+    const request = store.getAll();
+    
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Get offline sales by date
+export async function getOfflineSalesByDate(date: string): Promise<OfflineSale[]> {
+  const db = await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([SALES_STORE], 'readonly');
+    const store = transaction.objectStore(SALES_STORE);
+    const index = store.index('sale_date');
+    const request = index.getAll(date);
+    
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Delete offline sale
+export async function deleteOfflineSale(id: string): Promise<void> {
+  const db = await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([SALES_STORE], 'readwrite');
+    const store = transaction.objectStore(SALES_STORE);
+    const request = store.delete(id);
+    
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Mark sale as synced
+export async function markSaleSynced(id: string): Promise<void> {
+  const db = await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([SALES_STORE], 'readwrite');
+    const store = transaction.objectStore(SALES_STORE);
+    const getRequest = store.get(id);
+    
+    getRequest.onsuccess = () => {
+      const sale = getRequest.result;
+      if (sale) {
+        sale.synced = true;
+        const putRequest = store.put(sale);
+        putRequest.onsuccess = () => resolve();
+        putRequest.onerror = () => reject(putRequest.error);
+      } else {
+        resolve();
+      }
+    };
+    
+    getRequest.onerror = () => reject(getRequest.error);
+  });
+}
+
+// ==================== OFFLINE MEDICINES OPERATIONS ====================
+
+// Save medicine to offline storage
+export async function saveOfflineMedicine(medicine: OfflineMedicine): Promise<void> {
+  const db = await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([MEDICINES_STORE], 'readwrite');
+    const store = transaction.objectStore(MEDICINES_STORE);
+    const request = store.put(medicine);
+    
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Save multiple medicines to offline storage (for bulk sync)
+export async function saveOfflineMedicines(medicines: OfflineMedicine[]): Promise<void> {
+  const db = await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([MEDICINES_STORE], 'readwrite');
+    const store = transaction.objectStore(MEDICINES_STORE);
+    
+    let completed = 0;
+    const total = medicines.length;
+    
+    if (total === 0) {
+      resolve();
+      return;
+    }
+    
+    medicines.forEach((medicine) => {
+      const request = store.put(medicine);
+      request.onsuccess = () => {
+        completed++;
+        if (completed === total) resolve();
+      };
+      request.onerror = () => reject(request.error);
+    });
+  });
+}
+
+// Get all offline medicines
+export async function getOfflineMedicines(): Promise<OfflineMedicine[]> {
+  const db = await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([MEDICINES_STORE], 'readonly');
+    const store = transaction.objectStore(MEDICINES_STORE);
+    const request = store.getAll();
+    
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Get offline medicine by ID
+export async function getOfflineMedicine(id: string): Promise<OfflineMedicine | null> {
+  const db = await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([MEDICINES_STORE], 'readonly');
+    const store = transaction.objectStore(MEDICINES_STORE);
+    const request = store.get(id);
+    
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Update offline medicine stock (for local stock adjustments)
+export async function updateOfflineMedicineStock(id: string, quantityChange: number): Promise<void> {
+  const db = await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([MEDICINES_STORE], 'readwrite');
+    const store = transaction.objectStore(MEDICINES_STORE);
+    const getRequest = store.get(id);
+    
+    getRequest.onsuccess = () => {
+      const medicine = getRequest.result;
+      if (medicine) {
+        medicine.current_stock = Math.max(0, medicine.current_stock + quantityChange);
+        medicine.updated_at = Date.now();
+        const putRequest = store.put(medicine);
+        putRequest.onsuccess = () => resolve();
+        putRequest.onerror = () => reject(putRequest.error);
+      } else {
+        resolve();
+      }
+    };
+    
+    getRequest.onerror = () => reject(getRequest.error);
+  });
+}
+
+// ==================== OFFLINE STOCK TRANSACTIONS ====================
+
+// Save stock transaction to offline storage
+export async function saveOfflineStockTransaction(transaction: OfflineStockTransaction): Promise<void> {
+  const db = await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction([STOCK_STORE], 'readwrite');
+    const store = tx.objectStore(STOCK_STORE);
+    const request = store.put(transaction);
+    
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Get all offline stock transactions
+export async function getOfflineStockTransactions(): Promise<OfflineStockTransaction[]> {
+  const db = await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STOCK_STORE], 'readonly');
+    const store = transaction.objectStore(STOCK_STORE);
+    const request = store.getAll();
+    
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Mark stock transaction as synced
+export async function markStockTransactionSynced(id: string): Promise<void> {
+  const db = await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STOCK_STORE], 'readwrite');
+    const store = transaction.objectStore(STOCK_STORE);
+    const getRequest = store.get(id);
+    
+    getRequest.onsuccess = () => {
+      const tx = getRequest.result;
+      if (tx) {
+        tx.synced = true;
+        const putRequest = store.put(tx);
+        putRequest.onsuccess = () => resolve();
+        putRequest.onerror = () => reject(putRequest.error);
+      } else {
+        resolve();
+      }
+    };
+    
+    getRequest.onerror = () => reject(getRequest.error);
+  });
+}
+
+// ==================== DATA SYNC HELPERS ====================
+
+// Sync medicines from server to offline storage
+export async function syncMedicinesToOffline(): Promise<void> {
+  try {
+    const { data, error } = await supabase
+      .from('medicines')
+      .select('*, medicine_categories(name)')
+      .order('name');
+    
+    if (error) throw error;
+    
+    if (data) {
+      const offlineMedicines: OfflineMedicine[] = data.map((m) => ({
+        id: m.id,
+        name: m.name,
+        category_id: m.category_id || undefined,
+        category_name: m.medicine_categories?.name || undefined,
+        current_stock: m.current_stock,
+        total_stock: m.total_stock,
+        min_stock_level: m.min_stock_level,
+        cost_price: m.cost_price || undefined,
+        medicine_type: m.medicine_type || undefined,
+        entry_date: m.entry_date || undefined,
+        updated_at: Date.now(),
+      }));
+      
+      await saveOfflineMedicines(offlineMedicines);
+    }
+  } catch (error) {
+    console.error('Failed to sync medicines to offline storage:', error);
+  }
+}
+
+// Get unsynced sales count
+export async function getUnsyncedSalesCount(): Promise<number> {
+  const sales = await getOfflineSales();
+  return sales.filter(s => !s.synced).length;
+}
+
+// Get unsynced stock transactions count
+export async function getUnsyncedStockCount(): Promise<number> {
+  const transactions = await getOfflineStockTransactions();
+  return transactions.filter(t => !t.synced).length;
 }
