@@ -142,6 +142,23 @@ const MonthlyReport = () => {
     },
   });
 
+  // Fetch attendance data for the month
+  const { data: attendanceData } = useQuery({
+    queryKey: ["attendance-report", monthStart.toISOString()],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("attendance")
+        .select("*")
+        .gte("clock_in", monthStart.toISOString())
+        .lte("clock_in", monthEnd.toISOString())
+        .order("clock_in", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: isAdmin,
+  });
+
 
   // Fetch audit logs (admin only)
   const { data: auditLogsData } = useQuery({
@@ -246,16 +263,61 @@ const MonthlyReport = () => {
   }, {} as Record<string, { type: string; quantity: number; value: number }>) || {};
 
 
-  // Staff Activity with sales details for admin evaluation
+  // Staff Activity with sales details and attendance for admin evaluation
   const staffActivities = profilesData?.map(profile => {
     const staffSales = salesData?.filter(s => s.recorded_by === profile.id) || [];
+    const staffAttendance = attendanceData?.filter(a => a.user_id === profile.id) || [];
+    
+    // Calculate total working hours
+    const totalWorkingMinutes = staffAttendance.reduce((total, att) => {
+      if (att.clock_in && att.clock_out) {
+        const clockIn = new Date(att.clock_in);
+        const clockOut = new Date(att.clock_out);
+        return total + (clockOut.getTime() - clockIn.getTime()) / (1000 * 60);
+      }
+      return total;
+    }, 0);
+    const totalWorkingHours = Math.round(totalWorkingMinutes / 60 * 10) / 10;
+    
+    // Get attendance sessions with sales made during each session
+    const attendanceSessions = staffAttendance.map(att => {
+      const clockIn = new Date(att.clock_in);
+      const clockOut = att.clock_out ? new Date(att.clock_out) : new Date();
+      
+      // Find sales made during this attendance session
+      const sessionSales = staffSales.filter(sale => {
+        const saleDate = new Date(sale.sale_date);
+        return saleDate >= clockIn && saleDate <= clockOut;
+      });
+      
+      return {
+        id: att.id,
+        clock_in: att.clock_in,
+        clock_out: att.clock_out,
+        notes: att.notes,
+        salesCount: sessionSales.length,
+        salesValue: sessionSales.reduce((sum, s) => sum + Number(s.total_amount || 0), 0),
+        sales: sessionSales.map(s => ({
+          id: s.id,
+          medicine_name: s.medicines?.name || 'Unknown',
+          quantity_sold: s.quantity_sold,
+          total_amount: Number(s.total_amount || 0),
+          sale_date: s.sale_date,
+        })),
+      };
+    });
+    
     return {
+      id: profile.id,
       name: profile.full_name || '',
       email: profile.email || '',
       salesCount: staffSales.length,
       salesValue: staffSales.reduce((sum, s) => sum + Number(s.total_amount || 0), 0),
       intakeCount: transactionsData?.filter(t => t.recorded_by === profile.id && t.transaction_type === 'intake').length || 0,
       adjustmentCount: adjustmentsData?.filter(a => a.recorded_by === profile.id).length || 0,
+      attendanceCount: staffAttendance.length,
+      totalWorkingHours,
+      attendanceSessions,
       // Include individual sales for admin to view/delete
       sales: staffSales.map(s => ({
         id: s.id,
@@ -265,7 +327,7 @@ const MonthlyReport = () => {
         sale_date: s.sale_date,
       })),
     };
-  }).filter(s => s.salesCount > 0 || s.intakeCount > 0 || s.adjustmentCount > 0) || [];
+  }).filter(s => s.salesCount > 0 || s.intakeCount > 0 || s.adjustmentCount > 0 || s.attendanceCount > 0) || [];
 
   // Audit Logs
   const auditLogs = auditLogsData?.map(log => ({
