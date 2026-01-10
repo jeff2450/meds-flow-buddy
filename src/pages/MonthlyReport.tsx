@@ -18,8 +18,6 @@ import SalesSummarySection from "@/components/report/SalesSummarySection";
 import SalesBreakdownSection from "@/components/report/SalesBreakdownSection";
 import InventoryStatusSection from "@/components/report/InventoryStatusSection";
 import StockMovementSection from "@/components/report/StockMovementSection";
-import ControlledDrugsSection from "@/components/report/ControlledDrugsSection";
-import LossesReturnsSection from "@/components/report/LossesReturnsSection";
 import AuditActivitySection from "@/components/report/AuditActivitySection";
 import FinancialSummarySection from "@/components/report/FinancialSummarySection";
 import ExportComplianceSection from "@/components/report/ExportComplianceSection";
@@ -144,20 +142,6 @@ const MonthlyReport = () => {
     },
   });
 
-  // Fetch controlled drugs log
-  const { data: controlledDrugsData } = useQuery({
-    queryKey: ["controlled-drugs-log", monthStart.toISOString()],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("controlled_drugs_log")
-        .select("*, medicines ( name )")
-        .gte("log_date", monthStart.toISOString())
-        .lte("log_date", monthEnd.toISOString());
-
-      if (error) throw error;
-      return data;
-    },
-  });
 
   // Fetch audit logs (admin only)
   const { data: auditLogsData } = useQuery({
@@ -261,43 +245,6 @@ const MonthlyReport = () => {
     return acc;
   }, {} as Record<string, { type: string; quantity: number; value: number }>) || {};
 
-  // Controlled Drugs
-  const controlledDrugsLogs = controlledDrugsData?.map(log => ({
-    id: log.id,
-    medicine_name: log.medicines?.name || 'Unknown',
-    opening_balance: log.opening_balance,
-    quantity_received: log.quantity_received,
-    quantity_dispensed: log.quantity_dispensed,
-    closing_balance: log.closing_balance,
-    prescriber_reference: log.prescriber_reference,
-    variance: log.variance,
-    compliance_confirmed: log.compliance_confirmed,
-  })) || [];
-
-  // Losses & Returns
-  const lossData = {
-    damaged: { quantity: 0, value: 0 },
-    expired: { quantity: 0, value: 0 },
-    customerReturns: { quantity: 0, value: 0 },
-    supplierReturns: { quantity: 0, value: 0 },
-    theft: { quantity: 0, value: 0 },
-    totalLossValue: 0,
-    lossPercentage: 0,
-  };
-
-  adjustmentsData?.forEach(adj => {
-    const data = { quantity: adj.quantity || 0, value: Number(adj.value || 0) };
-    switch (adj.adjustment_type) {
-      case 'damage': lossData.damaged = { quantity: lossData.damaged.quantity + data.quantity, value: lossData.damaged.value + data.value }; break;
-      case 'expired': lossData.expired = { quantity: lossData.expired.quantity + data.quantity, value: lossData.expired.value + data.value }; break;
-      case 'customer_return': lossData.customerReturns = { quantity: lossData.customerReturns.quantity + data.quantity, value: lossData.customerReturns.value + data.value }; break;
-      case 'supplier_return': lossData.supplierReturns = { quantity: lossData.supplierReturns.quantity + data.quantity, value: lossData.supplierReturns.value + data.value }; break;
-      case 'theft': lossData.theft = { quantity: lossData.theft.quantity + data.quantity, value: lossData.theft.value + data.value }; break;
-    }
-  });
-
-  lossData.totalLossValue = lossData.damaged.value + lossData.expired.value + lossData.theft.value;
-  lossData.lossPercentage = stockValueCost > 0 ? (lossData.totalLossValue / stockValueCost) * 100 : 0;
 
   // Staff Activity with sales details for admin evaluation
   const staffActivities = profilesData?.map(profile => {
@@ -483,11 +430,6 @@ const MonthlyReport = () => {
           adjustments={Object.values(adjustmentsSummary)}
         />
 
-        {/* 8. Controlled Drugs Report */}
-        <ControlledDrugsSection logs={controlledDrugsLogs} />
-
-        {/* 9. Losses, Returns & Adjustments */}
-        <LossesReturnsSection data={lossData} />
 
         {/* 10. Audit & User Activity */}
         <AuditActivitySection
