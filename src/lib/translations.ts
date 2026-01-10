@@ -254,6 +254,18 @@ export const translations = {
     monitorStaffAttendance: "Monitor staff attendance and work hours",
     staffMember: "Staff Member",
     duration: "Duration",
+    // Attendance & Sales Report
+    attendanceSales: "Attendance & Sales",
+    attendanceSalesDescription: "View staff attendance sessions and sales made during each login period",
+    totalWorkingHours: "Total Working Hours",
+    workingHours: "Hours",
+    sessions: "sessions",
+    salesLabel: "sales",
+    stillActive: "Still Active",
+    activeSession: "Active",
+    time: "Time",
+    noSalesDuringSession: "No sales recorded during this session",
+    salesWithoutAttendance: "Sales without attendance records:",
     
     // Inventory View
     allInventory: "All Inventory",
@@ -512,6 +524,19 @@ export const translations = {
     monitorStaffAttendance: "Fuatilia mahudhurio na masaa ya kazi",
     staffMember: "Mfanyakazi",
     duration: "Muda",
+    
+    // Attendance & Sales Report
+    attendanceSales: "Mahudhurio & Mauzo",
+    attendanceSalesDescription: "Tazama vipindi vya mahudhurio na mauzo yaliyofanywa wakati wa kila kipindi",
+    totalWorkingHours: "Jumla ya Masaa ya Kazi",
+    workingHours: "Masaa",
+    sessions: "vipindi",
+    salesLabel: "mauzo",
+    stillActive: "Bado Anaendelea",
+    activeSession: "Inaendelea",
+    time: "Wakati",
+    noSalesDuringSession: "Hakuna mauzo yaliyorekodiwa wakati wa kipindi hiki",
+    salesWithoutAttendance: "Mauzo bila rekodi za mahudhurio:",
     
     // Inventory View
     allInventory: "Hesabu Yote",
