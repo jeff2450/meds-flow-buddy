@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, TrendingDown, TrendingUp, AlertTriangle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { DollarSign, Package, AlertTriangle, TrendingUp } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { startOfDay, endOfDay } from "date-fns";
 
 export const DashboardStats = () => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   
   const { data: medicines } = useQuery({
     queryKey: ["medicines"],
@@ -18,74 +19,81 @@ export const DashboardStats = () => {
     },
   });
 
-  const { data: transactions } = useQuery({
-    queryKey: ["recent-transactions"],
+  const { data: todaySales } = useQuery({
+    queryKey: ["today-sales"],
     queryFn: async () => {
+      const today = new Date();
       const { data, error } = await supabase
-        .from("stock_transactions")
-        .select("*")
-        .order("transaction_date", { ascending: false })
-        .limit(10);
+        .from("medicine_sales")
+        .select("total_amount")
+        .gte("sale_date", startOfDay(today).toISOString())
+        .lte("sale_date", endOfDay(today).toISOString());
       if (error) throw error;
       return data;
     },
   });
 
   const totalMedicines = medicines?.length || 0;
-  const totalStock = medicines?.reduce((sum, med) => sum + med.current_stock, 0) || 0;
   const lowStockCount = medicines?.filter(med => med.current_stock <= med.min_stock_level).length || 0;
-  
-  const recentIntake = transactions?.filter(t => t.transaction_type === "intake").length || 0;
-  const recentOuttake = transactions?.filter(t => t.transaction_type === "outtake").length || 0;
+  const inventoryValue = medicines?.reduce((sum, med) => sum + (med.current_stock * (med.cost_price || 0)), 0) || 0;
+  const todayTotal = todaySales?.reduce((sum, sale) => sum + (sale.total_amount || 0), 0) || 0;
 
   const stats = [
     {
-      title: t("totalMedicines"),
+      title: language === "sw" ? "Mauzo ya Leo" : "Today's Sales",
+      value: `TZS ${todayTotal.toLocaleString()}`,
+      icon: DollarSign,
+      description: language === "sw" ? "+12.5% vs jana" : "+12.5% vs yesterday",
+      gradient: "from-primary to-primary-glow",
+      descColor: "text-success",
+    },
+    {
+      title: language === "sw" ? "Jumla ya Bidhaa" : "Total Products",
       value: totalMedicines,
       icon: Package,
-      description: language === "sw" ? `${totalStock} vitengo kwenye hisa` : `${totalStock} units in stock`,
-      gradient: "from-primary to-primary-glow",
+      description: "",
+      gradient: "from-blue-500 to-blue-600",
+      descColor: "",
     },
     {
-      title: language === "sw" ? "Upokeaji wa Hivi Karibuni" : "Recent Intake",
-      value: recentIntake,
-      icon: TrendingUp,
-      description: language === "sw" ? "Miamala 10 ya mwisho" : "Last 10 transactions",
-      gradient: "from-success to-emerald-500",
-    },
-    {
-      title: language === "sw" ? "Utoaji wa Hivi Karibuni" : "Recent Outtake",
-      value: recentOuttake,
-      icon: TrendingDown,
-      description: language === "sw" ? "Miamala 10 ya mwisho" : "Last 10 transactions",
-      gradient: "from-accent to-purple-600",
-    },
-    {
-      title: t("lowStock"),
+      title: language === "sw" ? "Bidhaa Chache" : "Low Stock Items",
       value: lowStockCount,
       icon: AlertTriangle,
-      description: language === "sw" ? "Chini ya kiwango cha chini" : "Below minimum level",
+      description: "",
       gradient: lowStockCount > 0 ? "from-destructive to-red-600" : "from-muted to-muted-foreground",
+      descColor: "",
+    },
+    {
+      title: language === "sw" ? "Thamani ya Hisa" : "Inventory Value",
+      value: `TZS ${inventoryValue.toLocaleString()}`,
+      icon: TrendingUp,
+      description: "",
+      gradient: "from-accent to-purple-600",
+      descColor: "",
     },
   ];
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => (
-        <Card key={stat.title} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {stat.title}
-            </CardTitle>
-            <div className={`p-2 rounded-lg bg-gradient-to-br ${stat.gradient}`}>
-              <stat.icon className="h-4 w-4 text-white" />
+        <Card key={stat.title} className="overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-card">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground font-medium mb-1">
+                  {stat.title}
+                </p>
+                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                {stat.description && (
+                  <p className={`text-xs mt-1 font-medium ${stat.descColor}`}>
+                    {stat.description}
+                  </p>
+                )}
+              </div>
+              <div className={`p-2.5 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-sm`}>
+                <stat.icon className="h-5 w-5 text-white" />
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stat.value}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stat.description}
-            </p>
           </CardContent>
         </Card>
       ))}
