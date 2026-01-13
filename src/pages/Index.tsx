@@ -3,6 +3,7 @@ import { MedicineTable } from "@/components/MedicineTable";
 import { TransactionDialog } from "@/components/TransactionDialog";
 import { AddMedicineDialog } from "@/components/AddMedicineDialog";
 import { SalesTable } from "@/components/SalesTable";
+import { SalesRecordDialog } from "@/components/SalesRecordDialog";
 import UserManagement from "@/components/UserManagement";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { SyncStatus } from "@/components/SyncStatus";
@@ -145,7 +146,14 @@ const Index = () => {
       case "dashboard":
         return (
           <div className="space-y-6">
-            <DashboardStats />
+            <div className="flex items-center justify-between">
+              <DashboardStats />
+              {canPerformActions && (
+                <div className="flex gap-3">
+                  <SalesRecordDialog />
+                </div>
+              )}
+            </div>
             <div className="flex gap-6">
               <RecentSales />
               <LowStockAlert />
