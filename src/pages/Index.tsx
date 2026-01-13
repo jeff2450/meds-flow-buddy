@@ -8,10 +8,13 @@ import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { SyncStatus } from "@/components/SyncStatus";
 import { AttendanceTracker } from "@/components/AttendanceTracker";
 import { AttendanceManagement } from "@/components/AttendanceManagement";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, DollarSign, FileText, LogOut, WifiOff } from "lucide-react";
+import { Sidebar } from "@/components/Sidebar";
+import { RecentSales } from "@/components/RecentSales";
+import { LowStockAlert } from "@/components/LowStockAlert";
+import { Bell, Search, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,17 +30,19 @@ import {
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
   const [online, setOnline] = useState(isOnline());
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [userName, setUserName] = useState<string | null>(null);
   const [offlineUser, setOfflineUser] = useState<{
     userId: string;
     email: string;
     fullName: string | null;
     roles: string[];
   } | null>(null);
-  const { isAdmin, isWorker, hasAnyRole, isLoading: rolesLoading } = useUserRole();
+  const { isAdmin, isWorker } = useUserRole();
 
   // Check offline mode roles
   const offlineIsAdmin = offlineUser?.roles.includes('admin') ?? false;
@@ -70,6 +75,13 @@ const Index = () => {
       
       if (session) {
         setIsOfflineMode(false);
+        // Fetch user profile
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", session.user.id)
+          .single();
+        setUserName(profile?.full_name || session.user.email || null);
         setLoading(false);
         return;
       }
@@ -79,6 +91,7 @@ const Index = () => {
       if (offlineSession) {
         setIsOfflineMode(true);
         setOfflineUser(offlineSession);
+        setUserName(offlineSession.fullName || offlineSession.email);
         setLoading(false);
         return;
       }
@@ -115,117 +128,165 @@ const Index = () => {
     navigate("/auth");
   };
 
+  const handleTabChange = (tab: string) => {
+    if (tab === "reports") {
+      navigate("/monthly-report");
+    } else {
+      setActiveTab(tab);
+    }
+  };
+
   if (loading) {
     return null;
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card shadow-sm">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary-glow shadow-md">
-                <Activity className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-                  {t("appTitle")}
-                </h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {t("appSubtitle")}
-                </p>
-              </div>
+  const renderContent = () => {
+    switch (activeTab) {
+      case "dashboard":
+        return (
+          <div className="space-y-6">
+            <DashboardStats />
+            <div className="flex gap-6">
+              <RecentSales />
+              <LowStockAlert />
             </div>
-            <div className="flex items-center gap-3">
+            {canPerformActions && !isOfflineMode && (
+              <div className="flex justify-end">
+                <AttendanceTracker />
+              </div>
+            )}
+          </div>
+        );
+      case "inventory":
+        return <MedicineTable />;
+      case "sales":
+        return <SalesTable />;
+      case "stock-intake":
+        return (
+          <div className="space-y-4">
+            <div className="flex gap-3">
+              <TransactionDialog />
+              <AddMedicineDialog />
+            </div>
+            <MedicineTable />
+          </div>
+        );
+      case "attendance":
+        return showAdminTab ? <AttendanceManagement /> : null;
+      case "users":
+        return showAdminTab ? <UserManagement /> : null;
+      default:
+        return null;
+    }
+  };
+
+  const getPageTitle = () => {
+    switch (activeTab) {
+      case "dashboard":
+        return language === "sw" ? "Dashibodi" : "Dashboard";
+      case "inventory":
+        return t("inventory");
+      case "sales":
+        return t("salesLabel");
+      case "stock-intake":
+        return t("stockIntake");
+      case "attendance":
+        return t("attendance");
+      case "users":
+        return t("userManagement");
+      default:
+        return "";
+    }
+  };
+
+  const getPageDescription = () => {
+    switch (activeTab) {
+      case "dashboard":
+        return language === "sw" ? "Muhtasari wa shughuli za duka lako" : "Overview of your pharmacy operations";
+      case "inventory":
+        return language === "sw" ? "Simamia bidhaa zako" : "Manage your products";
+      case "sales":
+        return language === "sw" ? "Tazama rekodi za mauzo" : "View sales records";
+      case "stock-intake":
+        return language === "sw" ? "Rekodi upokeaji wa bidhaa" : "Record stock intake";
+      case "attendance":
+        return language === "sw" ? "Simamia mahudhurio ya wafanyakazi" : "Manage staff attendance";
+      case "users":
+        return language === "sw" ? "Simamia watumiaji wa mfumo" : "Manage system users";
+      default:
+        return "";
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar */}
+      <Sidebar
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        showAdminTabs={showAdminTab}
+        onLogout={handleLogout}
+        userName={userName || undefined}
+      />
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Header */}
+        <header className="bg-card border-b border-border px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">{getPageTitle()}</h1>
+              <p className="text-sm text-muted-foreground">{getPageDescription()}</p>
+            </div>
+            <div className="flex items-center gap-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={language === "sw" ? "Tafuta bidhaa..." : "Search products..."}
+                  className="pl-9 w-64 bg-background"
+                />
+              </div>
+              
               {/* Sync Status */}
               <SyncStatus />
+              
+              {/* Language Switch */}
+              <LanguageSwitch />
+              
+              {/* Notifications */}
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+              </Button>
               
               {isOfflineMode && (
                 <Badge variant="outline" className="text-amber-600 border-amber-300">
                   <WifiOff className="h-3 w-3 mr-1" />
-                  Offline Mode
+                  Offline
                 </Badge>
               )}
-              
-              <LanguageSwitch />
-              {showAdminTab && (
-                <Button variant="outline" onClick={() => navigate("/monthly-report")}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  {t("monthlyReport")}
-                </Button>
-              )}
-              {canPerformActions && (
-                <>
-                  <Button onClick={() => navigate("/sales-recording")}>
-                    <DollarSign className="h-4 w-4 mr-2" />
-                    {t("recordSales")}
-                  </Button>
-                  <AddMedicineDialog />
-                  <TransactionDialog />
-                </>
-              )}
-              <Button variant="outline" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                {t("logout")}
-              </Button>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Offline Mode Banner */}
-      {isOfflineMode && (
-        <div className="bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800 px-4 py-2">
-          <p className="text-sm text-amber-800 dark:text-amber-200 text-center">
-            <WifiOff className="inline h-4 w-4 mr-1" />
-            You're working in offline mode. Data will sync when you're back online.
-            {offlineUser?.fullName && (
-              <span className="ml-2 font-medium">Logged in as: {offlineUser.fullName}</span>
-            )}
-          </p>
-        </div>
-      )}
+        {/* Offline Mode Banner */}
+        {isOfflineMode && (
+          <div className="bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800 px-6 py-2">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
+              <WifiOff className="inline h-4 w-4 mr-1" />
+              {language === "sw" 
+                ? "Unafanya kazi bila mtandao. Data itasawazishwa ukiwa mtandaoni."
+                : "You're working in offline mode. Data will sync when you're back online."
+              }
+            </p>
+          </div>
+        )}
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="inventory" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="inventory">{t("inventory")}</TabsTrigger>
-            <TabsTrigger value="sales">{t("sales")}</TabsTrigger>
-            {showAdminTab && <TabsTrigger value="attendance">{t("attendance")}</TabsTrigger>}
-            {showAdminTab && <TabsTrigger value="users">{t("userManagement")}</TabsTrigger>}
-          </TabsList>
-          <TabsContent value="inventory" className="space-y-8">
-            <section className="flex gap-6">
-              <div className="flex-1">
-                <h2 className="text-xl font-semibold mb-4">{t("overview")}</h2>
-                <DashboardStats />
-              </div>
-              {canPerformActions && !isOfflineMode && (
-                <AttendanceTracker />
-              )}
-            </section>
-            <section>
-              <MedicineTable />
-            </section>
-          </TabsContent>
-          <TabsContent value="sales" className="space-y-8">
-            <SalesTable />
-          </TabsContent>
-          {showAdminTab && (
-            <TabsContent value="attendance">
-              <AttendanceManagement />
-            </TabsContent>
-          )}
-          {showAdminTab && (
-            <TabsContent value="users">
-              <UserManagement />
-            </TabsContent>
-          )}
-        </Tabs>
-      </main>
+        {/* Page Content */}
+        <main className="flex-1 p-6 overflow-auto">
+          {renderContent()}
+        </main>
+      </div>
     </div>
   );
 };

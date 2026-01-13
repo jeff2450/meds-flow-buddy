@@ -270,6 +270,9 @@ export const translations = {
     // Inventory View
     allInventory: "All Inventory",
     viewAllProducts: "View all products in inventory",
+    
+    // Sidebar / Dashboard
+    dashboard: "Dashboard",
   },
   sw: {
     // Header
@@ -541,6 +544,9 @@ export const translations = {
     // Inventory View
     allInventory: "Hesabu Yote",
     viewAllProducts: "Tazama bidhaa zote kwenye hesabu",
+    
+    // Sidebar / Dashboard
+    dashboard: "Dashibodi",
   },
 } as const;
 
