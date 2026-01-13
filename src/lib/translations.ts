@@ -273,6 +273,7 @@ export const translations = {
     
     // Sidebar / Dashboard
     dashboard: "Dashboard",
+    recordSale: "Record Sale",
   },
   sw: {
     // Header
@@ -547,6 +548,7 @@ export const translations = {
     
     // Sidebar / Dashboard
     dashboard: "Dashibodi",
+    recordSale: "Rekodi Mauzo",
   },
 } as const;
 

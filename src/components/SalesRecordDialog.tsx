@@ -37,7 +37,11 @@ interface Medicine {
   min_stock_level: number;
 }
 
-export function SalesRecordDialog() {
+interface SalesRecordDialogProps {
+  trigger?: React.ReactNode;
+}
+
+export function SalesRecordDialog({ trigger }: SalesRecordDialogProps) {
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [medicineId, setMedicineId] = useState("");
@@ -171,10 +175,12 @@ export function SalesRecordDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <DollarSign className="h-4 w-4 mr-2" />
-          Record Sale
-        </Button>
+        {trigger || (
+          <Button>
+            <DollarSign className="h-4 w-4 mr-2" />
+            Record Sale
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>

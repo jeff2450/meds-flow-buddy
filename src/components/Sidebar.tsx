@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { SalesRecordDialog } from "@/components/SalesRecordDialog";
 import {
   LayoutDashboard,
   Package,
@@ -11,6 +12,7 @@ import {
   Activity,
   Users,
   FileText,
+  Plus,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -19,6 +21,7 @@ interface SidebarProps {
   showAdminTabs: boolean;
   onLogout: () => void;
   userName?: string;
+  canRecordSales?: boolean;
 }
 
 export const Sidebar = ({
@@ -27,6 +30,7 @@ export const Sidebar = ({
   showAdminTabs,
   onLogout,
   userName,
+  canRecordSales = true,
 }: SidebarProps) => {
   const { t } = useLanguage();
 
@@ -61,6 +65,20 @@ export const Sidebar = ({
           </div>
         </div>
       </div>
+
+      {/* Quick Action */}
+      {canRecordSales && (
+        <div className="px-4 mb-4">
+          <SalesRecordDialog 
+            trigger={
+              <Button className="w-full gap-2">
+                <Plus className="h-4 w-4" />
+                {t("recordSale")}
+              </Button>
+            }
+          />
+        </div>
+      )}
 
       {/* Menu */}
       <div className="flex-1 p-4">
