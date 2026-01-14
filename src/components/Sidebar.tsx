@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { SalesRecordDialog } from "@/components/SalesRecordDialog";
+import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
@@ -33,6 +33,7 @@ export const Sidebar = ({
   canRecordSales = true,
 }: SidebarProps) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   const menuItems = [
     { id: "dashboard", label: t("dashboard"), icon: LayoutDashboard },
@@ -68,15 +69,14 @@ export const Sidebar = ({
 
       {/* Quick Action */}
       {canRecordSales && (
-        <div className="px-4 mb-4">
-          <SalesRecordDialog 
-            trigger={
-              <Button className="w-full gap-2">
-                <Plus className="h-4 w-4" />
-                {t("recordSale")}
-              </Button>
-            }
-          />
+        <div className="px-4 py-4">
+          <Button 
+            className="w-full gap-2"
+            onClick={() => navigate("/sales-recording")}
+          >
+            <Plus className="h-4 w-4" />
+            {t("recordSale")}
+          </Button>
         </div>
       )}
 
