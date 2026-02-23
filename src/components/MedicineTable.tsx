@@ -104,7 +104,8 @@ export const MedicineTable = () => {
                 </TableRow>
               ) : (
                 filteredMedicines.map((medicine) => {
-                  const isLowStock = medicine.current_stock <= medicine.min_stock_level;
+                  const isOutOfStock = medicine.current_stock === 0;
+                  const isLowStock = !isOutOfStock && medicine.current_stock <= medicine.min_stock_level;
                   return (
                     <TableRow key={medicine.id}>
                       <TableCell className="font-medium">{medicine.name}</TableCell>
@@ -118,7 +119,9 @@ export const MedicineTable = () => {
                         {format(new Date(medicine.entry_date || medicine.created_at), "MMM dd, yyyy")}
                       </TableCell>
                       <TableCell>
-                        {isLowStock ? (
+                        {isOutOfStock ? (
+                          <Badge variant="destructive">{language === "sw" ? "Imeisha" : "Out of Stock"}</Badge>
+                        ) : isLowStock ? (
                           <Badge variant="destructive">{t("lowStock")}</Badge>
                         ) : (
                           <Badge className="bg-success text-success-foreground">

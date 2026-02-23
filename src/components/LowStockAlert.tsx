@@ -53,7 +53,10 @@ export const LowStockAlert = () => {
                 ? "text-destructive" 
                 : "text-orange-500"
             }`}>
-              {med.current_stock} {language === "sw" ? "zimebaki" : "left"}
+              {med.current_stock === 0
+                ? (language === "sw" ? "Imeisha" : "Out of Stock")
+                : `${med.current_stock} ${language === "sw" ? "zimebaki" : "left"}`
+              }
             </span>
           </div>
         ))}
