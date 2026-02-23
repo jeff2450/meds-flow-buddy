@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, Shield } from "lucide-react";
+import { UserPlus, Shield, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { workerRegistrationSchema } from "@/lib/validations";
@@ -37,6 +48,7 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [registering, setRegistering] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -51,7 +63,6 @@ export default function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      // Use secure RPC function that masks email addresses
       const { data: profilesData, error: profilesError } = await supabase
         .rpc("get_user_list_for_admin");
 
@@ -130,6 +141,37 @@ export default function UserManagement() {
 
   const getUserRoles = (userId: string) => {
     return userRoles.filter((ur) => ur.user_id === userId).map((ur) => ur.role);
+  };
+
+  const deleteUser = async (userId: string) => {
+    setDeletingUserId(userId);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+
+      const response = await supabase.functions.invoke("delete-user", {
+        body: { user_id: userId },
+      });
+
+      if (response.error) throw response.error;
+
+      toast({
+        title: language === "sw" ? "Mtumiaji amefutwa" : "User deleted",
+        description: language === "sw"
+          ? "Mtumiaji amefutwa kabisa kutoka kwenye mfumo."
+          : "User has been permanently removed from the system.",
+      });
+
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: language === "sw" ? "Kosa la kufuta mtumiaji" : "Error deleting user",
+        description: error.message,
+      });
+    } finally {
+      setDeletingUserId(null);
+    }
   };
 
   const registerWorker = async (e: React.FormEvent) => {
@@ -333,6 +375,41 @@ export default function UserManagement() {
                       {t("makeAdmin")}
                     </Button>
                   )}
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={deletingUserId === profile.id}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        {language === "sw" ? "Futa" : "Delete"}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          {language === "sw" ? "Futa mtumiaji?" : "Delete user?"}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {language === "sw"
+                            ? `Hatua hii itafuta akaunti ya "${profile.full_name || "mtumiaji huyu"}" kabisa. Hii haiwezi kutenduliwa.`
+                            : `This will permanently delete "${profile.full_name || "this user"}"'s account. This action cannot be undone.`}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>
+                          {language === "sw" ? "Ghairi" : "Cancel"}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteUser(profile.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          {language === "sw" ? "Futa kabisa" : "Delete permanently"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             );
