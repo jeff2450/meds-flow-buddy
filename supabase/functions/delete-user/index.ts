@@ -73,10 +73,10 @@ Deno.serve(async (req) => {
     // Delete profile
     await supabaseAdmin.from("profiles").delete().eq("id", user_id);
 
-    // Delete the auth user permanently
+    // Delete the auth user permanently (ignore "User not found" if already deleted)
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user_id);
 
-    if (deleteError) {
+    if (deleteError && !deleteError.message.includes("not found")) {
       return new Response(
         JSON.stringify({ error: deleteError.message }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
