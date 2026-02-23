@@ -146,14 +146,7 @@ const Index = () => {
       case "dashboard":
         return (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <DashboardStats />
-              {canPerformActions && (
-                <div className="flex gap-3">
-                  <SalesRecordDialog />
-                </div>
-              )}
-            </div>
+            <DashboardStats />
             <div className="flex gap-6">
               <RecentSales />
               <LowStockAlert />
