@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,7 @@ const MonthlyReport = () => {
   const queryClient = useQueryClient();
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [authChecked, setAuthChecked] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -330,9 +333,40 @@ const MonthlyReport = () => {
   };
 
   // Export handlers
-  const handleExportPDF = () => {
-    window.print();
-    toast.success("Printing report...");
+  const handleExportPDF = async () => {
+    const reportEl = reportRef.current;
+    if (!reportEl) return;
+    toast.info("Generating PDF...");
+    try {
+      const canvas = await html2canvas(reportEl, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft > 0) {
+        position -= pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+
+      pdf.save(`monthly-report-${format(selectedMonth, "yyyy-MM")}.pdf`);
+      toast.success("PDF downloaded successfully");
+    } catch {
+      toast.error("Failed to generate PDF");
+    }
   };
 
   const handleExportCSV = () => {
@@ -408,7 +442,7 @@ const MonthlyReport = () => {
       </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 space-y-6">
+      <main ref={reportRef} className="container mx-auto px-4 py-8 space-y-6">
         {/* 2. Sales Summary */}
         <SalesSummarySection
           totalValue={totalValue}
