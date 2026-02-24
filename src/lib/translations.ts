@@ -216,7 +216,7 @@ export const translations = {
     
     // Monthly Report - Export
     exportCompliance: "Export & Compliance",
-    printPDF: "Print PDF",
+    printPDF: "Download PDF",
     exportExcel: "Export Excel/CSV",
     secureArchive: "Secure Archive",
     pharmacistSignature: "Pharmacist-in-Charge Signature",
@@ -490,7 +490,7 @@ export const translations = {
     
     // Monthly Report - Export
     exportCompliance: "Eksporti & Utiifu",
-    printPDF: "Chapisha PDF",
+    printPDF: "Pakua PDF",
     exportExcel: "Eksporti Excel/CSV",
     secureArchive: "Kumbukumbu Salama",
     pharmacistSignature: "Sahihi ya Mfamasia Mkuu",
