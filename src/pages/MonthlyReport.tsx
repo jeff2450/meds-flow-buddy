@@ -17,7 +17,6 @@ import { toast } from "sonner";
 import SalesSummarySection from "@/components/report/SalesSummarySection";
 import SalesBreakdownSection from "@/components/report/SalesBreakdownSection";
 import InventoryStatusSection from "@/components/report/InventoryStatusSection";
-import StockMovementSection from "@/components/report/StockMovementSection";
 import AuditActivitySection from "@/components/report/AuditActivitySection";
 import FinancialSummarySection from "@/components/report/FinancialSummarySection";
 import ExportComplianceSection from "@/components/report/ExportComplianceSection";
@@ -106,36 +105,6 @@ const MonthlyReport = () => {
         .from("medicines")
         .select("*, medicine_categories ( name )")
         .order("name");
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Fetch stock transactions for the month
-  const { data: transactionsData } = useQuery({
-    queryKey: ["stock-transactions", monthStart.toISOString()],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("stock_transactions")
-        .select("*")
-        .gte("transaction_date", monthStart.toISOString())
-        .lte("transaction_date", monthEnd.toISOString());
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Fetch stock adjustments
-  const { data: adjustmentsData } = useQuery({
-    queryKey: ["stock-adjustments", monthStart.toISOString()],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("stock_adjustments")
-        .select("*")
-        .gte("adjustment_date", monthStart.toISOString())
-        .lte("adjustment_date", monthEnd.toISOString());
 
       if (error) throw error;
       return data;
@@ -246,21 +215,6 @@ const MonthlyReport = () => {
   const lowStockMedicines = stockData?.filter(m => m.current_stock > 0 && m.current_stock <= m.min_stock_level) || [];
   const overstockedMedicines = stockData?.filter(m => m.current_stock > m.min_stock_level * 3) || [];
 
-  // Stock Movement
-  const totalReceived = transactionsData?.filter(t => t.transaction_type === 'intake')
-    .reduce((sum, t) => sum + (t.quantity || 0), 0) || 0;
-  const totalIssued = totalQuantitySold;
-  const netChange = totalReceived - totalIssued;
-
-  // Adjustments summary
-  const adjustmentsSummary = adjustmentsData?.reduce((acc, adj) => {
-    if (!acc[adj.adjustment_type]) {
-      acc[adj.adjustment_type] = { type: adj.adjustment_type, quantity: 0, value: 0 };
-    }
-    acc[adj.adjustment_type].quantity += adj.quantity || 0;
-    acc[adj.adjustment_type].value += Number(adj.value || 0);
-    return acc;
-  }, {} as Record<string, { type: string; quantity: number; value: number }>) || {};
 
 
   // Staff Activity with sales details and attendance for admin evaluation
@@ -313,8 +267,8 @@ const MonthlyReport = () => {
       email: profile.email || '',
       salesCount: staffSales.length,
       salesValue: staffSales.reduce((sum, s) => sum + Number(s.total_amount || 0), 0),
-      intakeCount: transactionsData?.filter(t => t.recorded_by === profile.id && t.transaction_type === 'intake').length || 0,
-      adjustmentCount: adjustmentsData?.filter(a => a.recorded_by === profile.id).length || 0,
+      intakeCount: 0,
+      adjustmentCount: 0,
       attendanceCount: staffAttendance.length,
       totalWorkingHours,
       attendanceSessions,
@@ -483,15 +437,6 @@ const MonthlyReport = () => {
           lowStockMedicines={lowStockMedicines}
           overstockedMedicines={overstockedMedicines}
         />
-
-        {/* 5. Stock Movement Summary */}
-        <StockMovementSection
-          totalReceived={totalReceived}
-          totalIssued={totalIssued}
-          netChange={netChange}
-          adjustments={Object.values(adjustmentsSummary)}
-        />
-
 
         {/* 10. Audit & User Activity */}
         <AuditActivitySection
