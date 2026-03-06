@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,18 +16,25 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { TrendingUp, WifiOff } from "lucide-react";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { TrendingUp, WifiOff, ChevronsUpDown, Check } from "lucide-react";
 import { toast } from "sonner";
 import { transactionSchema } from "@/lib/validations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { isOnline } from "@/lib/offlineAuth";
 import { queueOperation, getCachedData, cacheData } from "@/lib/offlineSync";
+import { cn } from "@/lib/utils";
 
 interface Medicine {
   id: string;
@@ -46,6 +53,7 @@ export const TransactionDialog = () => {
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [online, setOnline] = useState(isOnline());
+  const [comboOpen, setComboOpen] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -81,6 +89,15 @@ export const TransactionDialog = () => {
       return data as Medicine[];
     },
   });
+
+  const uniqueMedicines = (() => {
+    const seen = new Set<string>();
+    return (medicines || []).filter(m => {
+      if (seen.has(m.name)) return false;
+      seen.add(m.name);
+      return true;
+    });
+  })();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,21 +191,44 @@ export const TransactionDialog = () => {
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="medicine">{language === "sw" ? "Kiolezo cha Dawa" : "Medicine Template"} *</Label>
-              <Select value={medicineId} onValueChange={setMedicineId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("selectMedicine")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from(new Set(medicines?.map(m => m.name) || [])).map((name) => {
-                    const medicine = medicines?.find(m => m.name === name);
-                    return medicine ? (
-                      <SelectItem key={medicine.id} value={medicine.id}>
-                        {name}
-                      </SelectItem>
-                    ) : null;
-                  })}
-                </SelectContent>
-              </Select>
+              <Popover open={comboOpen} onOpenChange={setComboOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={comboOpen}
+                    className={cn("w-full justify-between font-normal", !medicineId && "text-muted-foreground")}
+                  >
+                    {medicineId
+                      ? medicines?.find(m => m.id === medicineId)?.name ?? t("selectMedicine")
+                      : t("selectMedicine")}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder={language === "sw" ? "Tafuta dawa..." : "Search medicine..."} />
+                    <CommandList>
+                      <CommandEmpty>{language === "sw" ? "Dawa haijapatikana" : "No medicine found"}</CommandEmpty>
+                      <CommandGroup>
+                        {uniqueMedicines.map((medicine) => (
+                          <CommandItem
+                            key={medicine.id}
+                            value={medicine.name}
+                            onSelect={() => {
+                              setMedicineId(medicine.id);
+                              setComboOpen(false);
+                            }}
+                          >
+                            <Check className={cn("mr-2 h-4 w-4", medicineId === medicine.id ? "opacity-100" : "opacity-0")} />
+                            {medicine.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="quantity">{t("quantity")} *</Label>
