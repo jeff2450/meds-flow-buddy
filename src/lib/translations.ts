@@ -98,7 +98,7 @@ export const translations = {
     autoSaved: "Auto-saved",
     medicineBatch: "Medicine Batch",
     selectBatch: "Select batch",
-    unitPriceDollar: "Unit Price ($)",
+    unitPriceDollar: "Unit Price (TZS)",
     subtotal: "Subtotal",
     notesOptional: "Notes (Optional)",
     addNotes: "Add any notes...",
