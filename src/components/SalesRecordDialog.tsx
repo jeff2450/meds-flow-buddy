@@ -282,7 +282,7 @@ export function SalesRecordDialog({ trigger }: SalesRecordDialogProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="unit-price">Unit Price ($)</Label>
+              <Label htmlFor="unit-price">Unit Price (TZS)</Label>
               <Input
                 id="unit-price"
                 type="number"
