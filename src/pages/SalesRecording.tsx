@@ -421,7 +421,7 @@ const SalesRecording = () => {
                   {entry.quantity && entry.unitPrice && (
                     <div className="flex justify-end">
                       <span className="text-sm font-medium">
-                        {t("subtotal")}: ${(parseFloat(entry.quantity) * parseFloat(entry.unitPrice)).toFixed(2)}
+                        {t("subtotal")}: TZS {(parseFloat(entry.quantity) * parseFloat(entry.unitPrice)).toLocaleString()}
                       </span>
                     </div>
                   )}
@@ -444,7 +444,7 @@ const SalesRecording = () => {
               <div className="p-4 bg-muted rounded-lg">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">{t("totalFor")} {format(selectedDate, "PPP")}:</span>
-                  <span className="text-2xl font-bold">${calculateTotal().toFixed(2)}</span>
+                  <span className="text-2xl font-bold">TZS {calculateTotal().toLocaleString()}</span>
                 </div>
               </div>
             </CardContent>

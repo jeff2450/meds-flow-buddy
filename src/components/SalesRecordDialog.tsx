@@ -282,7 +282,7 @@ export function SalesRecordDialog({ trigger }: SalesRecordDialogProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="unit-price">Unit Price ($)</Label>
+              <Label htmlFor="unit-price">Unit Price (TZS)</Label>
               <Input
                 id="unit-price"
                 type="number"
@@ -301,7 +301,7 @@ export function SalesRecordDialog({ trigger }: SalesRecordDialogProps) {
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">Total Amount:</span>
                 <span className="text-lg font-bold">
-                  ${(parseFloat(quantity || "0") * parseFloat(unitPrice || "0")).toFixed(2)}
+                  TZS {(parseFloat(quantity || "0") * parseFloat(unitPrice || "0")).toLocaleString()}
                 </span>
               </div>
             </div>

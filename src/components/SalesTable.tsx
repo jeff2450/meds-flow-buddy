@@ -125,7 +125,7 @@ export function SalesTable() {
             </div>
             <div className="p-4 bg-green-500/10 rounded-lg">
               <p className="text-sm text-muted-foreground">{language === "sw" ? "Jumla ya Mapato" : "Total Revenue"}</p>
-              <p className="text-2xl font-bold">${totalRevenue.toFixed(2)}</p>
+              <p className="text-2xl font-bold">TZS {totalRevenue.toLocaleString()}</p>
             </div>
           </div>
         )}
@@ -161,10 +161,10 @@ export function SalesTable() {
                       {sale.quantity_sold}
                     </TableCell>
                     <TableCell className="text-right">
-                      ${parseFloat(String(sale.unit_price)).toFixed(2)}
+                      TZS {parseFloat(String(sale.unit_price)).toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right font-semibold">
-                      ${parseFloat(String(sale.total_amount || 0)).toFixed(2)}
+                      TZS {parseFloat(String(sale.total_amount || 0)).toLocaleString()}
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate">
                       {sale.notes || "-"}
