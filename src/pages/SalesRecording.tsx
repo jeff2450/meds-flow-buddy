@@ -421,7 +421,7 @@ const SalesRecording = () => {
                   {entry.quantity && entry.unitPrice && (
                     <div className="flex justify-end">
                       <span className="text-sm font-medium">
-                        {t("subtotal")}: ${(parseFloat(entry.quantity) * parseFloat(entry.unitPrice)).toFixed(2)}
+                        {t("subtotal")}: TZS {(parseFloat(entry.quantity) * parseFloat(entry.unitPrice)).toLocaleString()}
                       </span>
                     </div>
                   )}
