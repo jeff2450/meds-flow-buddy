@@ -301,7 +301,7 @@ export function SalesRecordDialog({ trigger }: SalesRecordDialogProps) {
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">Total Amount:</span>
                 <span className="text-lg font-bold">
-                  ${(parseFloat(quantity || "0") * parseFloat(unitPrice || "0")).toFixed(2)}
+                  TZS {(parseFloat(quantity || "0") * parseFloat(unitPrice || "0")).toLocaleString()}
                 </span>
               </div>
             </div>

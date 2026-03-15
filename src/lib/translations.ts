@@ -372,7 +372,7 @@ export const translations = {
     autoSaved: "Imehifadhiwa",
     medicineBatch: "Kundi la Dawa",
     selectBatch: "Chagua kundi",
-    unitPriceDollar: "Bei ya Kitengo ($)",
+    unitPriceDollar: "Bei ya Kitengo (TZS)",
     subtotal: "Jumla ndogo",
     notesOptional: "Maelezo (Hiari)",
     addNotes: "Ongeza maelezo yoyote...",
