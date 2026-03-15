@@ -161,7 +161,7 @@ export function SalesTable() {
                       {sale.quantity_sold}
                     </TableCell>
                     <TableCell className="text-right">
-                      ${parseFloat(String(sale.unit_price)).toFixed(2)}
+                      TZS {parseFloat(String(sale.unit_price)).toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right font-semibold">
                       ${parseFloat(String(sale.total_amount || 0)).toFixed(2)}
