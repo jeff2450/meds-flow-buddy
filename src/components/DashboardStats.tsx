@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { DollarSign, Package, AlertTriangle, TrendingUp } from "lucide-react";
+import { DollarSign, Package, AlertTriangle, TrendingUp, Clock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { startOfDay, endOfDay } from "date-fns";
 
@@ -30,6 +30,22 @@ export const DashboardStats = () => {
         .lte("sale_date", endOfDay(today).toISOString());
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: expiringCount } = useQuery({
+    queryKey: ["expiring-count"],
+    queryFn: async () => {
+      const thirtyDays = new Date();
+      thirtyDays.setDate(thirtyDays.getDate() + 30);
+      const { count, error } = await supabase
+        .from("medicines")
+        .select("*", { count: "exact", head: true })
+        .not("expiry_date", "is", null)
+        .lte("expiry_date", thirtyDays.toISOString().split("T")[0])
+        .gt("current_stock", 0);
+      if (error) throw error;
+      return count || 0;
     },
   });
 
@@ -64,6 +80,14 @@ export const DashboardStats = () => {
       descColor: "",
     },
     {
+      title: language === "sw" ? "Zinaisha Muda" : "Expiring Soon",
+      value: expiringCount || 0,
+      icon: Clock,
+      description: language === "sw" ? "Ndani ya siku 30" : "Within 30 days",
+      gradient: (expiringCount || 0) > 0 ? "from-amber-500 to-amber-600" : "from-muted to-muted-foreground",
+      descColor: (expiringCount || 0) > 0 ? "text-amber-600" : "",
+    },
+    {
       title: language === "sw" ? "Thamani ya Hisa" : "Inventory Value",
       value: `TZS ${inventoryValue.toLocaleString()}`,
       icon: TrendingUp,
@@ -74,7 +98,7 @@ export const DashboardStats = () => {
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
       {stats.map((stat) => (
         <Card key={stat.title} className="overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-card">
           <CardContent className="p-5">

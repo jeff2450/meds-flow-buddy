@@ -32,6 +32,9 @@ export const AddMedicineDialog = () => {
   const [categoryId, setCategoryId] = useState("");
   const [initialStock, setInitialStock] = useState("");
   const [minStockLevel, setMinStockLevel] = useState("10");
+  const [batchNumber, setBatchNumber] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
+  const [sellingPrice, setSellingPrice] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const queryClient = useQueryClient();
 
@@ -79,6 +82,9 @@ export const AddMedicineDialog = () => {
         total_stock: stockAmount,
         min_stock_level: result.data.minStockLevel,
         entry_date: new Date().toISOString(),
+        batch_number: batchNumber.trim() || null,
+        expiry_date: expiryDate || null,
+        selling_price: parseFloat(sellingPrice) || 0,
       },
     ]);
 
@@ -96,6 +102,9 @@ export const AddMedicineDialog = () => {
     setCategoryId("");
     setInitialStock("");
     setMinStockLevel("10");
+    setBatchNumber("");
+    setExpiryDate("");
+    setSellingPrice("");
     setErrors({});
     setOpen(false);
   };
@@ -177,6 +186,37 @@ export const AddMedicineDialog = () => {
               {errors.minStockLevel && (
                 <p className="text-sm text-destructive">{errors.minStockLevel}</p>
               )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="batch-number">{language === "sw" ? "Nambari ya Kundi" : "Batch Number"}</Label>
+              <Input
+                id="batch-number"
+                value={batchNumber}
+                onChange={(e) => setBatchNumber(e.target.value)}
+                placeholder={language === "sw" ? "Ingiza nambari ya kundi" : "Enter batch number"}
+                maxLength={50}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="expiry-date">{language === "sw" ? "Tarehe ya Kuisha" : "Expiry Date"}</Label>
+              <Input
+                id="expiry-date"
+                type="date"
+                value={expiryDate}
+                onChange={(e) => setExpiryDate(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="selling-price">{language === "sw" ? "Bei ya Kuuza (TZS)" : "Selling Price (TZS)"}</Label>
+              <Input
+                id="selling-price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={sellingPrice}
+                onChange={(e) => setSellingPrice(e.target.value)}
+                placeholder="0"
+              />
             </div>
           </div>
           <DialogFooter>
