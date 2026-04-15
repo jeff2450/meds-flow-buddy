@@ -76,7 +76,7 @@ const Settings = () => {
     // Remove existing roles first
     await supabase.from("user_roles").delete().eq("user_id", userId);
     // Insert new role
-    const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: newRole });
+    const { error } = await supabase.from("user_roles").insert([{ user_id: userId, role: newRole as any }]);
     if (error) {
       toast({ variant: "destructive", title: "Error", description: error.message });
     } else {
