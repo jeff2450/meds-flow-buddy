@@ -21,6 +21,7 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
+          organization_id: string | null
           user_id: string
         }
         Insert: {
@@ -29,6 +30,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          organization_id?: string | null
           user_id: string
         }
         Update: {
@@ -37,9 +39,18 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          organization_id?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "attendance_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       audit_logs: {
         Row: {
@@ -47,6 +58,7 @@ export type Database = {
           id: string
           new_data: Json | null
           old_data: Json | null
+          organization_id: string | null
           performed_at: string
           performed_by: string | null
           record_id: string
@@ -57,6 +69,7 @@ export type Database = {
           id?: string
           new_data?: Json | null
           old_data?: Json | null
+          organization_id?: string | null
           performed_at?: string
           performed_by?: string | null
           record_id: string
@@ -67,12 +80,21 @@ export type Database = {
           id?: string
           new_data?: Json | null
           old_data?: Json | null
+          organization_id?: string | null
           performed_at?: string
           performed_by?: string | null
           record_id?: string
           table_name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       controlled_drugs_log: {
         Row: {
@@ -84,6 +106,7 @@ export type Database = {
           medicine_id: string
           notes: string | null
           opening_balance: number
+          organization_id: string | null
           prescriber_reference: string | null
           quantity_dispensed: number
           quantity_received: number
@@ -99,6 +122,7 @@ export type Database = {
           medicine_id: string
           notes?: string | null
           opening_balance?: number
+          organization_id?: string | null
           prescriber_reference?: string | null
           quantity_dispensed?: number
           quantity_received?: number
@@ -114,6 +138,7 @@ export type Database = {
           medicine_id?: string
           notes?: string | null
           opening_balance?: number
+          organization_id?: string | null
           prescriber_reference?: string | null
           quantity_dispensed?: number
           quantity_received?: number
@@ -135,6 +160,13 @@ export type Database = {
             referencedRelation: "medicines_staff_view"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "controlled_drugs_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       medicine_categories: {
@@ -143,20 +175,31 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          organization_id: string | null
         }
         Insert: {
           created_at?: string
           description?: string | null
           id?: string
           name: string
+          organization_id?: string | null
         }
         Update: {
           created_at?: string
           description?: string | null
           id?: string
           name?: string
+          organization_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "medicine_categories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       medicine_sales: {
         Row: {
@@ -165,6 +208,7 @@ export type Database = {
           is_prescription: boolean | null
           medicine_id: string
           notes: string | null
+          organization_id: string | null
           quantity_sold: number
           recorded_by: string | null
           sale_date: string
@@ -178,6 +222,7 @@ export type Database = {
           is_prescription?: boolean | null
           medicine_id: string
           notes?: string | null
+          organization_id?: string | null
           quantity_sold: number
           recorded_by?: string | null
           sale_date: string
@@ -191,6 +236,7 @@ export type Database = {
           is_prescription?: boolean | null
           medicine_id?: string
           notes?: string | null
+          organization_id?: string | null
           quantity_sold?: number
           recorded_by?: string | null
           sale_date?: string
@@ -213,45 +259,64 @@ export type Database = {
             referencedRelation: "medicines_staff_view"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "medicine_sales_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       medicines: {
         Row: {
+          batch_number: string | null
           category_id: string | null
           cost_price: number | null
           created_at: string
           current_stock: number
           entry_date: string | null
+          expiry_date: string | null
           id: string
           medicine_type: Database["public"]["Enums"]["medicine_type"] | null
           min_stock_level: number
           name: string
+          organization_id: string | null
+          selling_price: number | null
           total_stock: number
           updated_at: string
         }
         Insert: {
+          batch_number?: string | null
           category_id?: string | null
           cost_price?: number | null
           created_at?: string
           current_stock?: number
           entry_date?: string | null
+          expiry_date?: string | null
           id?: string
           medicine_type?: Database["public"]["Enums"]["medicine_type"] | null
           min_stock_level?: number
           name: string
+          organization_id?: string | null
+          selling_price?: number | null
           total_stock?: number
           updated_at?: string
         }
         Update: {
+          batch_number?: string | null
           category_id?: string | null
           cost_price?: number | null
           created_at?: string
           current_stock?: number
           entry_date?: string | null
+          expiry_date?: string | null
           id?: string
           medicine_type?: Database["public"]["Enums"]["medicine_type"] | null
           min_stock_level?: number
           name?: string
+          organization_id?: string | null
+          selling_price?: number | null
           total_stock?: number
           updated_at?: string
         }
@@ -263,7 +328,38 @@ export type Database = {
             referencedRelation: "medicine_categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "medicines_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          settings: Json | null
+          slug: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          settings?: Json | null
+          slug?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          settings?: Json | null
+          slug?: string | null
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -271,20 +367,31 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          organization_id: string | null
         }
         Insert: {
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          organization_id?: string | null
         }
         Update: {
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          organization_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stock_adjustments: {
         Row: {
@@ -294,6 +401,7 @@ export type Database = {
           id: string
           medicine_id: string
           notes: string | null
+          organization_id: string | null
           quantity: number
           recorded_by: string | null
           value: number | null
@@ -305,6 +413,7 @@ export type Database = {
           id?: string
           medicine_id: string
           notes?: string | null
+          organization_id?: string | null
           quantity: number
           recorded_by?: string | null
           value?: number | null
@@ -316,6 +425,7 @@ export type Database = {
           id?: string
           medicine_id?: string
           notes?: string | null
+          organization_id?: string | null
           quantity?: number
           recorded_by?: string | null
           value?: number | null
@@ -335,6 +445,13 @@ export type Database = {
             referencedRelation: "medicines_staff_view"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "stock_adjustments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       stock_transactions: {
@@ -343,6 +460,7 @@ export type Database = {
           id: string
           medicine_id: string
           notes: string | null
+          organization_id: string | null
           quantity: number
           recorded_by: string | null
           transaction_date: string
@@ -353,6 +471,7 @@ export type Database = {
           id?: string
           medicine_id: string
           notes?: string | null
+          organization_id?: string | null
           quantity: number
           recorded_by?: string | null
           transaction_date?: string
@@ -363,6 +482,7 @@ export type Database = {
           id?: string
           medicine_id?: string
           notes?: string | null
+          organization_id?: string | null
           quantity?: number
           recorded_by?: string | null
           transaction_date?: string
@@ -381,6 +501,13 @@ export type Database = {
             columns: ["medicine_id"]
             isOneToOne: false
             referencedRelation: "medicines_staff_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -415,6 +542,7 @@ export type Database = {
           medicine_type: Database["public"]["Enums"]["medicine_type"] | null
           min_stock_level: number | null
           name: string | null
+          organization_id: string | null
         }
         Insert: {
           current_stock?: number | null
@@ -422,6 +550,7 @@ export type Database = {
           medicine_type?: Database["public"]["Enums"]["medicine_type"] | null
           min_stock_level?: number | null
           name?: string | null
+          organization_id?: string | null
         }
         Update: {
           current_stock?: number | null
@@ -429,8 +558,17 @@ export type Database = {
           medicine_type?: Database["public"]["Enums"]["medicine_type"] | null
           min_stock_level?: number | null
           name?: string | null
+          organization_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "medicines_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
@@ -444,6 +582,7 @@ export type Database = {
           id: string
         }[]
       }
+      get_user_org_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
