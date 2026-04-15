@@ -128,6 +128,13 @@ export type Database = {
             referencedRelation: "medicines"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "controlled_drugs_log_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines_staff_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       medicine_categories: {
@@ -197,6 +204,13 @@ export type Database = {
             columns: ["medicine_id"]
             isOneToOne: false
             referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicine_sales_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines_staff_view"
             referencedColumns: ["id"]
           },
         ]
@@ -314,6 +328,13 @@ export type Database = {
             referencedRelation: "medicines"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "stock_adjustments_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines_staff_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       stock_transactions: {
@@ -355,6 +376,13 @@ export type Database = {
             referencedRelation: "medicines"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "stock_transactions_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines_staff_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
@@ -380,7 +408,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      medicines_staff_view: {
+        Row: {
+          current_stock: number | null
+          id: string | null
+          medicine_type: Database["public"]["Enums"]["medicine_type"] | null
+          min_stock_level: number | null
+          name: string | null
+        }
+        Insert: {
+          current_stock?: number | null
+          id?: string | null
+          medicine_type?: Database["public"]["Enums"]["medicine_type"] | null
+          min_stock_level?: number | null
+          name?: string | null
+        }
+        Update: {
+          current_stock?: number | null
+          id?: string | null
+          medicine_type?: Database["public"]["Enums"]["medicine_type"] | null
+          min_stock_level?: number | null
+          name?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_next_folio_number: { Args: never; Returns: number }
@@ -402,7 +453,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "worker"
+      app_role: "admin" | "worker" | "manager" | "pharmacist" | "staff"
       medicine_type: "prescription" | "otc" | "controlled" | "medical_supplies"
     }
     CompositeTypes: {
@@ -531,7 +582,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "worker"],
+      app_role: ["admin", "worker", "manager", "pharmacist", "staff"],
       medicine_type: ["prescription", "otc", "controlled", "medical_supplies"],
     },
   },
