@@ -1,4 +1,5 @@
 import { DashboardStats } from "@/components/DashboardStats";
+import { DashboardCharts } from "@/components/DashboardCharts";
 import { MedicineTable } from "@/components/MedicineTable";
 import { TransactionDialog } from "@/components/TransactionDialog";
 import { AddMedicineDialog } from "@/components/AddMedicineDialog";
@@ -12,6 +13,7 @@ import { AttendanceManagement } from "@/components/AttendanceManagement";
 import { Sidebar } from "@/components/Sidebar";
 import { RecentSales } from "@/components/RecentSales";
 import { LowStockAlert } from "@/components/LowStockAlert";
+import { ExpiryAlerts } from "@/components/ExpiryAlerts";
 import { Bell, Search, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -132,6 +134,8 @@ const Index = () => {
   const handleTabChange = (tab: string) => {
     if (tab === "reports") {
       navigate("/monthly-report");
+    } else if (tab === "settings") {
+      navigate("/settings");
     } else {
       setActiveTab(tab);
     }
@@ -147,9 +151,13 @@ const Index = () => {
         return (
           <div className="space-y-6">
             <DashboardStats />
+            <DashboardCharts />
             <div className="flex gap-6">
               <RecentSales />
-              <LowStockAlert />
+              <div className="flex flex-col gap-6">
+                <LowStockAlert />
+                <ExpiryAlerts />
+              </div>
             </div>
             {canPerformActions && !isOfflineMode && (
               <div className="flex justify-end">

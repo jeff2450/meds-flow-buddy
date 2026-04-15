@@ -46,6 +46,7 @@ export const Sidebar = ({
     { id: "attendance", label: t("attendance"), icon: Users },
     { id: "users", label: t("userManagement"), icon: Settings },
     { id: "reports", label: t("monthlyReport"), icon: FileText },
+    { id: "settings", label: language === "sw" ? "Mipangilio" : "Settings", icon: Settings },
   ];
 
   return (
