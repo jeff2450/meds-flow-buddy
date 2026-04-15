@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
-type AppRole = "admin" | "worker";
+type AppRole = "admin" | "worker" | "manager" | "pharmacist" | "staff";
 
 interface UserRoleState {
   roles: AppRole[];
   isAdmin: boolean;
   isWorker: boolean;
+  isManager: boolean;
+  isPharmacist: boolean;
+  isStaff: boolean;
   hasAnyRole: boolean;
   isLoading: boolean;
 }
