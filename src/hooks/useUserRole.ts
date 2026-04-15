@@ -55,6 +55,9 @@ export const useUserRole = (): UserRoleState => {
     roles,
     isAdmin: roles.includes("admin"),
     isWorker: roles.includes("worker"),
+    isManager: roles.includes("manager"),
+    isPharmacist: roles.includes("pharmacist"),
+    isStaff: roles.includes("staff"),
     hasAnyRole: roles.length > 0,
     isLoading: isLoading || userId === null,
   };
