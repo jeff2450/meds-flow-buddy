@@ -98,7 +98,7 @@ export const DashboardStats = () => {
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
       {stats.map((stat) => (
         <Card key={stat.title} className="overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-card">
           <CardContent className="p-5">
