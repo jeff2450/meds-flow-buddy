@@ -32,7 +32,7 @@ export const Sidebar = ({
   userName,
   canRecordSales = true,
 }: SidebarProps) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
 
   const menuItems = [
