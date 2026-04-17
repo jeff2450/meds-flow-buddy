@@ -169,6 +169,103 @@ export type Database = {
           },
         ]
       }
+      customers: {
+        Row: {
+          address: string | null
+          created_at: string
+          created_by: string | null
+          credit_balance: number
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          credit_balance?: number
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          credit_balance?: number
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          description: string
+          expense_date: string
+          id: string
+          organization_id: string
+          payment_method: string | null
+          recorded_by: string | null
+          reference_number: string | null
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          description: string
+          expense_date?: string
+          id?: string
+          organization_id: string
+          payment_method?: string | null
+          recorded_by?: string | null
+          reference_number?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          description?: string
+          expense_date?: string
+          id?: string
+          organization_id?: string
+          payment_method?: string | null
+          recorded_by?: string | null
+          reference_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medicine_categories: {
         Row: {
           created_at: string
@@ -203,13 +300,19 @@ export type Database = {
       }
       medicine_sales: {
         Row: {
+          amount_paid: number
+          balance_due: number
           created_at: string
+          customer_id: string | null
           id: string
           is_prescription: boolean | null
           medicine_id: string
           notes: string | null
           organization_id: string | null
+          payment_method: string
+          payment_reference: string | null
           quantity_sold: number
+          receipt_number: string | null
           recorded_by: string | null
           sale_date: string
           total_amount: number | null
@@ -217,13 +320,19 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          amount_paid?: number
+          balance_due?: number
           created_at?: string
+          customer_id?: string | null
           id?: string
           is_prescription?: boolean | null
           medicine_id: string
           notes?: string | null
           organization_id?: string | null
+          payment_method?: string
+          payment_reference?: string | null
           quantity_sold: number
+          receipt_number?: string | null
           recorded_by?: string | null
           sale_date: string
           total_amount?: number | null
@@ -231,13 +340,19 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          amount_paid?: number
+          balance_due?: number
           created_at?: string
+          customer_id?: string | null
           id?: string
           is_prescription?: boolean | null
           medicine_id?: string
           notes?: string | null
           organization_id?: string | null
+          payment_method?: string
+          payment_reference?: string | null
           quantity_sold?: number
+          receipt_number?: string | null
           recorded_by?: string | null
           sale_date?: string
           total_amount?: number | null
@@ -245,6 +360,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "medicine_sales_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "medicine_sales_medicine_id_fkey"
             columns: ["medicine_id"]
@@ -361,6 +483,70 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_id: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          payment_date: string
+          payment_method: string
+          recorded_by: string | null
+          reference_number: string | null
+          sale_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          payment_date?: string
+          payment_method?: string
+          recorded_by?: string | null
+          reference_number?: string | null
+          sale_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          payment_date?: string
+          payment_method?: string
+          recorded_by?: string | null
+          reference_number?: string | null
+          sale_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "medicine_sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -388,6 +574,115 @@ export type Database = {
             foreignKeyName: "profiles_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchases: {
+        Row: {
+          amount_paid: number
+          batch_number: string | null
+          created_at: string
+          expiry_date: string | null
+          id: string
+          invoice_number: string | null
+          medicine_id: string
+          notes: string | null
+          organization_id: string
+          payment_status: string
+          purchase_date: string
+          quantity: number
+          recorded_by: string | null
+          supplier_id: string | null
+          total_cost: number | null
+          unit_cost: number
+        }
+        Insert: {
+          amount_paid?: number
+          batch_number?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          medicine_id: string
+          notes?: string | null
+          organization_id: string
+          payment_status?: string
+          purchase_date?: string
+          quantity: number
+          recorded_by?: string | null
+          supplier_id?: string | null
+          total_cost?: number | null
+          unit_cost?: number
+        }
+        Update: {
+          amount_paid?: number
+          batch_number?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          medicine_id?: string
+          notes?: string | null
+          organization_id?: string
+          payment_status?: string
+          purchase_date?: string
+          quantity?: number
+          recorded_by?: string | null
+          supplier_id?: string | null
+          total_cost?: number | null
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines_staff_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receipt_counters: {
+        Row: {
+          next_number: number
+          organization_id: string
+        }
+        Insert: {
+          next_number?: number
+          organization_id: string
+        }
+        Update: {
+          next_number?: number
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipt_counters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -512,6 +807,56 @@ export type Database = {
           },
         ]
       }
+      suppliers: {
+        Row: {
+          address: string | null
+          contact_person: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -590,6 +935,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      next_receipt_number: { Args: { _org_id: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "worker" | "manager" | "pharmacist" | "staff"
