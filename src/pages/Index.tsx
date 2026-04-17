@@ -132,10 +132,18 @@ const Index = () => {
   };
 
   const handleTabChange = (tab: string) => {
-    if (tab === "reports") {
-      navigate("/monthly-report");
-    } else if (tab === "settings") {
-      navigate("/settings");
+    const navMap: Record<string, string> = {
+      reports: "/monthly-report",
+      settings: "/settings",
+      pos: "/pos",
+      suppliers: "/suppliers",
+      purchases: "/purchases",
+      expenses: "/expenses",
+      customers: "/customers",
+      "reports-dashboard": "/reports",
+    };
+    if (navMap[tab]) {
+      navigate(navMap[tab]);
     } else {
       setActiveTab(tab);
     }
