@@ -10,6 +10,12 @@ import SalesRecording from "./pages/SalesRecording";
 import MonthlyReport from "./pages/MonthlyReport";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
+import POS from "./pages/POS";
+import Suppliers from "./pages/Suppliers";
+import Purchases from "./pages/Purchases";
+import Expenses from "./pages/Expenses";
+import Customers from "./pages/Customers";
+import Reports from "./pages/Reports";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +29,12 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<Index />} />
+            <Route path="/pos" element={<POS />} />
+            <Route path="/suppliers" element={<Suppliers />} />
+            <Route path="/purchases" element={<Purchases />} />
+            <Route path="/expenses" element={<Expenses />} />
+            <Route path="/customers" element={<Customers />} />
+            <Route path="/reports" element={<Reports />} />
             <Route path="/sales-recording" element={<SalesRecording />} />
             <Route path="/monthly-report" element={<MonthlyReport />} />
             <Route path="/settings" element={<Settings />} />
