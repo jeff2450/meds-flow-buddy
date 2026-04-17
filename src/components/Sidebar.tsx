@@ -13,6 +13,11 @@ import {
   Users,
   FileText,
   Plus,
+  Truck,
+  PackagePlus,
+  Wallet,
+  BarChart3,
+  Receipt,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -37,12 +42,18 @@ export const Sidebar = ({
 
   const menuItems = [
     { id: "dashboard", label: t("dashboard"), icon: LayoutDashboard },
+    { id: "pos", label: "POS", icon: Receipt },
     { id: "inventory", label: t("inventory"), icon: Package },
     { id: "sales", label: t("salesLabel"), icon: ShoppingCart },
+    { id: "customers", label: "Customers", icon: Users },
     { id: "stock-intake", label: t("stockIntake"), icon: ClipboardList },
   ];
 
   const adminItems = [
+    { id: "suppliers", label: "Suppliers", icon: Truck },
+    { id: "purchases", label: "Purchases", icon: PackagePlus },
+    { id: "expenses", label: "Expenses", icon: Wallet },
+    { id: "reports-dashboard", label: "Reports", icon: BarChart3 },
     { id: "attendance", label: t("attendance"), icon: Users },
     { id: "users", label: t("userManagement"), icon: Settings },
     { id: "reports", label: t("monthlyReport"), icon: FileText },
