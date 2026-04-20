@@ -127,6 +127,8 @@ const POS = () => {
     }
     toast({ variant: "destructive", title: "Not found", description: `No medicine for code ${code}` });
   };
+
+  const updateQty = (id: string, delta: number) => {
     setCart((prev) =>
       prev
         .map((c) => {
@@ -406,6 +408,7 @@ const POS = () => {
       {lastSale && (
         <ReceiptDialog open={showReceipt} onOpenChange={setShowReceipt} sale={lastSale} />
       )}
+      <BarcodeScanner open={scannerOpen} onClose={() => setScannerOpen(false)} onScan={handleScan} />
     </div>
   );
 };
