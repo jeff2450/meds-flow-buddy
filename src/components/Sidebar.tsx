@@ -47,6 +47,7 @@ export const Sidebar = ({
     { id: "pos", label: "POS", icon: Receipt },
     { id: "inventory", label: t("inventory"), icon: Package },
     { id: "sales", label: t("salesLabel"), icon: ShoppingCart },
+    { id: "prescriptions", label: "Prescriptions", icon: FileText },
     { id: "customers", label: "Customers", icon: Users },
     { id: "stock-intake", label: t("stockIntake"), icon: ClipboardList },
   ];
@@ -54,6 +55,7 @@ export const Sidebar = ({
   const adminItems = [
     { id: "suppliers", label: "Suppliers", icon: Truck },
     { id: "purchases", label: "Purchases", icon: PackagePlus },
+    { id: "expiry", label: "Expiry & Batches", icon: CalendarClock },
     { id: "expenses", label: "Expenses", icon: Wallet },
     { id: "attendance", label: t("attendance"), icon: Users },
     { id: "users", label: t("userManagement"), icon: Settings },
