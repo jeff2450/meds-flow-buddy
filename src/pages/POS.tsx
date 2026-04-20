@@ -241,6 +241,9 @@ const POS = () => {
             </h1>
             <p className="text-sm text-muted-foreground">Fast selling — search, scan, sell</p>
           </div>
+          <Button variant="outline" onClick={() => setScannerOpen(true)}>
+            <ScanLine className="h-4 w-4 mr-2" />Scan Barcode
+          </Button>
         </header>
 
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-4 p-4 overflow-hidden">
