@@ -97,7 +97,7 @@ const Expenses = () => {
     <div className="min-h-screen bg-background flex">
       <Sidebar
         activeTab="expenses"
-        onTabChange={(t) => (t === "dashboard" ? navigate("/") : navigate(`/${t}`))}
+        onTabChange={(t) => { if (t !== "expenses") navigateForTab(t, navigate); }}
         showAdminTabs={isAdmin}
         onLogout={async () => { await supabase.auth.signOut(); navigate("/auth"); }}
       />

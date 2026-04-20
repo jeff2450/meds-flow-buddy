@@ -80,7 +80,7 @@ const Reports = () => {
     <div className="min-h-screen bg-background flex">
       <Sidebar
         activeTab="reports-dashboard"
-        onTabChange={(t) => (t === "dashboard" ? navigate("/") : navigate(`/${t}`))}
+        onTabChange={(t) => { if (t !== "reports-dashboard") navigateForTab(t, navigate); }}
         showAdminTabs={isAdmin}
         onLogout={async () => { await supabase.auth.signOut(); navigate("/auth"); }}
       />

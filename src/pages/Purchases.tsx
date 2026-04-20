@@ -105,7 +105,7 @@ const Purchases = () => {
     <div className="min-h-screen bg-background flex">
       <Sidebar
         activeTab="purchases"
-        onTabChange={(t) => (t === "dashboard" ? navigate("/") : navigate(`/${t}`))}
+        onTabChange={(t) => { if (t !== "purchases") navigateForTab(t, navigate); }}
         showAdminTabs={isAdmin}
         onLogout={async () => { await supabase.auth.signOut(); navigate("/auth"); }}
       />
