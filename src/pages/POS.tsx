@@ -9,11 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Search, Plus, Minus, Trash2, ShoppingCart, Receipt, X } from "lucide-react";
+import { Search, Plus, Minus, Trash2, ShoppingCart, Receipt, X, ScanLine } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import { ReceiptDialog } from "@/components/pos/ReceiptDialog";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { navigateForTab } from "@/lib/sidebarNav";
 
 interface Medicine {
@@ -51,6 +52,7 @@ const POS = () => {
   const [submitting, setSubmitting] = useState(false);
   const [lastSale, setLastSale] = useState<any>(null);
   const [showReceipt, setShowReceipt] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   const { data: medicines = [] } = useQuery({
     queryKey: ["pos-medicines"],
@@ -97,7 +99,34 @@ const POS = () => {
     });
   };
 
-  const updateQty = (id: string, delta: number) => {
+  const handleScan = async (code: string) => {
+    setScannerOpen(false);
+    // Try medicine barcode first, then batch barcode
+    const { data: med } = await supabase
+      .from("medicines")
+      .select("id, name, current_stock, selling_price, cost_price")
+      .eq("barcode", code)
+      .gt("current_stock", 0)
+      .maybeSingle();
+    if (med) {
+      addToCart(med as Medicine);
+      toast({ title: "Added", description: med.name });
+      return;
+    }
+    const { data: batch } = await supabase
+      .from("medicine_batches")
+      .select("medicine_id, medicines(id, name, current_stock, selling_price, cost_price)")
+      .eq("barcode", code)
+      .gt("quantity_remaining", 0)
+      .maybeSingle();
+    const m: any = batch?.medicines;
+    if (m && m.current_stock > 0) {
+      addToCart(m as Medicine);
+      toast({ title: "Added", description: m.name });
+      return;
+    }
+    toast({ variant: "destructive", title: "Not found", description: `No medicine for code ${code}` });
+  };
     setCart((prev) =>
       prev
         .map((c) => {
