@@ -8,6 +8,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { format, startOfMonth, endOfMonth, subDays } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from "recharts";
 import { Badge } from "@/components/ui/badge";
+import { navigateForTab } from "@/lib/sidebarNav";
 
 const Reports = () => {
   const navigate = useNavigate();
