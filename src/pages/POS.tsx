@@ -192,6 +192,8 @@ const POS = () => {
         activeTab="pos"
         onTabChange={(t) => {
           if (t === "pos") return;
+          navigateForTab(t, navigate);
+          return;
           if (t === "dashboard") navigate("/");
           else navigate(`/${t}`);
         }}
