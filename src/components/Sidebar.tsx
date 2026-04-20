@@ -53,10 +53,8 @@ export const Sidebar = ({
     { id: "suppliers", label: "Suppliers", icon: Truck },
     { id: "purchases", label: "Purchases", icon: PackagePlus },
     { id: "expenses", label: "Expenses", icon: Wallet },
-    { id: "reports-dashboard", label: "Reports", icon: BarChart3 },
     { id: "attendance", label: t("attendance"), icon: Users },
     { id: "users", label: t("userManagement"), icon: Settings },
-    { id: "reports", label: t("monthlyReport"), icon: FileText },
     { id: "settings", label: language === "sw" ? "Mipangilio" : "Settings", icon: Settings },
   ];
 
