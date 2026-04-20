@@ -266,6 +266,95 @@ export type Database = {
           },
         ]
       }
+      medicine_batches: {
+        Row: {
+          barcode: string | null
+          batch_number: string | null
+          created_at: string
+          expiry_date: string | null
+          id: string
+          lot_number: string | null
+          manufacture_date: string | null
+          medicine_id: string
+          notes: string | null
+          organization_id: string
+          purchase_id: string | null
+          quantity_received: number
+          quantity_remaining: number
+          recorded_by: string | null
+          supplier_id: string | null
+          unit_cost: number | null
+          updated_at: string
+        }
+        Insert: {
+          barcode?: string | null
+          batch_number?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          lot_number?: string | null
+          manufacture_date?: string | null
+          medicine_id: string
+          notes?: string | null
+          organization_id: string
+          purchase_id?: string | null
+          quantity_received?: number
+          quantity_remaining?: number
+          recorded_by?: string | null
+          supplier_id?: string | null
+          unit_cost?: number | null
+          updated_at?: string
+        }
+        Update: {
+          barcode?: string | null
+          batch_number?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          lot_number?: string | null
+          manufacture_date?: string | null
+          medicine_id?: string
+          notes?: string | null
+          organization_id?: string
+          purchase_id?: string | null
+          quantity_received?: number
+          quantity_remaining?: number
+          recorded_by?: string | null
+          supplier_id?: string | null
+          unit_cost?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicine_batches_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicine_batches_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines_staff_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicine_batches_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicine_batches_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medicine_categories: {
         Row: {
           created_at: string
@@ -302,6 +391,7 @@ export type Database = {
         Row: {
           amount_paid: number
           balance_due: number
+          batch_id: string | null
           created_at: string
           customer_id: string | null
           id: string
@@ -311,6 +401,7 @@ export type Database = {
           organization_id: string | null
           payment_method: string
           payment_reference: string | null
+          prescription_id: string | null
           quantity_sold: number
           receipt_number: string | null
           recorded_by: string | null
@@ -322,6 +413,7 @@ export type Database = {
         Insert: {
           amount_paid?: number
           balance_due?: number
+          batch_id?: string | null
           created_at?: string
           customer_id?: string | null
           id?: string
@@ -331,6 +423,7 @@ export type Database = {
           organization_id?: string | null
           payment_method?: string
           payment_reference?: string | null
+          prescription_id?: string | null
           quantity_sold: number
           receipt_number?: string | null
           recorded_by?: string | null
@@ -342,6 +435,7 @@ export type Database = {
         Update: {
           amount_paid?: number
           balance_due?: number
+          batch_id?: string | null
           created_at?: string
           customer_id?: string | null
           id?: string
@@ -351,6 +445,7 @@ export type Database = {
           organization_id?: string | null
           payment_method?: string
           payment_reference?: string | null
+          prescription_id?: string | null
           quantity_sold?: number
           receipt_number?: string | null
           recorded_by?: string | null
@@ -360,6 +455,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "medicine_sales_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "medicine_batches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "medicine_sales_customer_id_fkey"
             columns: ["customer_id"]
@@ -388,10 +490,18 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "medicine_sales_prescription_id_fkey"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
         ]
       }
       medicines: {
         Row: {
+          barcode: string | null
           batch_number: string | null
           category_id: string | null
           cost_price: number | null
@@ -409,6 +519,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          barcode?: string | null
           batch_number?: string | null
           category_id?: string | null
           cost_price?: number | null
@@ -426,6 +537,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          barcode?: string | null
           batch_number?: string | null
           category_id?: string | null
           cost_price?: number | null
@@ -547,6 +659,147 @@ export type Database = {
           },
         ]
       }
+      prescription_items: {
+        Row: {
+          created_at: string
+          dosage: string | null
+          duration: string | null
+          frequency: string | null
+          id: string
+          instructions: string | null
+          medicine_id: string
+          prescription_id: string
+          quantity_dispensed: number
+          quantity_prescribed: number
+        }
+        Insert: {
+          created_at?: string
+          dosage?: string | null
+          duration?: string | null
+          frequency?: string | null
+          id?: string
+          instructions?: string | null
+          medicine_id: string
+          prescription_id: string
+          quantity_dispensed?: number
+          quantity_prescribed?: number
+        }
+        Update: {
+          created_at?: string
+          dosage?: string | null
+          duration?: string | null
+          frequency?: string | null
+          id?: string
+          instructions?: string | null
+          medicine_id?: string
+          prescription_id?: string
+          quantity_dispensed?: number
+          quantity_prescribed?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescription_items_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_items_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines_staff_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_items_prescription_id_fkey"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prescriptions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          diagnosis: string | null
+          id: string
+          is_controlled: boolean
+          issued_date: string
+          max_refills: number
+          notes: string | null
+          organization_id: string
+          patient_age: number | null
+          patient_name: string
+          patient_phone: string | null
+          prescriber_contact: string | null
+          prescriber_license: string | null
+          prescriber_name: string
+          prescription_number: string | null
+          refills_used: number
+          status: string
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          diagnosis?: string | null
+          id?: string
+          is_controlled?: boolean
+          issued_date?: string
+          max_refills?: number
+          notes?: string | null
+          organization_id: string
+          patient_age?: number | null
+          patient_name: string
+          patient_phone?: string | null
+          prescriber_contact?: string | null
+          prescriber_license?: string | null
+          prescriber_name: string
+          prescription_number?: string | null
+          refills_used?: number
+          status?: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          diagnosis?: string | null
+          id?: string
+          is_controlled?: boolean
+          issued_date?: string
+          max_refills?: number
+          notes?: string | null
+          organization_id?: string
+          patient_age?: number | null
+          patient_name?: string
+          patient_phone?: string | null
+          prescriber_contact?: string | null
+          prescriber_license?: string | null
+          prescriber_name?: string
+          prescription_number?: string | null
+          refills_used?: number
+          status?: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescriptions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -575,6 +828,50 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          organization_id: string
+          purchase_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          organization_id: string
+          purchase_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          organization_id?: string
+          purchase_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_attachments_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
             referencedColumns: ["id"]
           },
         ]
