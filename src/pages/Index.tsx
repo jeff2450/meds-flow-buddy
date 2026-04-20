@@ -18,7 +18,7 @@ import { Bell, Search, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -32,12 +32,19 @@ import {
 
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { t, language } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
   const [online, setOnline] = useState(isOnline());
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const initialTab = (location.state as { activeTab?: string } | null)?.activeTab ?? "dashboard";
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  useEffect(() => {
+    const t = (location.state as { activeTab?: string } | null)?.activeTab;
+    if (t) setActiveTab(t);
+  }, [location.state]);
   const [userName, setUserName] = useState<string | null>(null);
   const [offlineUser, setOfflineUser] = useState<{
     userId: string;

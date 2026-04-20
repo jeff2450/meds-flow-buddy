@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import { ReceiptDialog } from "@/components/pos/ReceiptDialog";
+import { navigateForTab } from "@/lib/sidebarNav";
 
 interface Medicine {
   id: string;
@@ -192,8 +193,7 @@ const POS = () => {
         activeTab="pos"
         onTabChange={(t) => {
           if (t === "pos") return;
-          if (t === "dashboard") navigate("/");
-          else navigate(`/${t}`);
+          navigateForTab(t, navigate);
         }}
         showAdminTabs={isAdmin}
         onLogout={async () => {

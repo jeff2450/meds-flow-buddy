@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sidebar } from "@/components/Sidebar";
 import { useNavigate } from "react-router-dom";
+import { navigateForTab } from "@/lib/sidebarNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,7 +72,7 @@ const Customers = () => {
     <div className="min-h-screen bg-background flex">
       <Sidebar
         activeTab="customers"
-        onTabChange={(t) => (t === "dashboard" ? navigate("/") : navigate(`/${t}`))}
+        onTabChange={(t) => { if (t !== "customers") navigateForTab(t, navigate); }}
         showAdminTabs={isAdmin}
         onLogout={async () => { await supabase.auth.signOut(); navigate("/auth"); }}
       />
