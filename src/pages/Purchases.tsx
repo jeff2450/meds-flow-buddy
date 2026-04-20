@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useOrganization } from "@/hooks/useOrganization";
 import { format } from "date-fns";
+import { PurchaseAttachments } from "@/components/PurchaseAttachments";
 
 const Purchases = () => {
   const navigate = useNavigate();
@@ -191,6 +192,7 @@ const Purchases = () => {
                     <TableHead>Batch</TableHead>
                     <TableHead>Expiry</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Invoice</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -209,10 +211,11 @@ const Purchases = () => {
                           {p.payment_status}
                         </Badge>
                       </TableCell>
+                      <TableCell><PurchaseAttachments purchaseId={p.id} /></TableCell>
                     </TableRow>
                   ))}
                   {purchases.length === 0 && (
-                    <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">No purchases yet</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">No purchases yet</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>

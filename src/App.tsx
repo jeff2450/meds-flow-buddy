@@ -16,6 +16,8 @@ import Purchases from "./pages/Purchases";
 import Expenses from "./pages/Expenses";
 import Customers from "./pages/Customers";
 import Reports from "./pages/Reports";
+import Prescriptions from "./pages/Prescriptions";
+import Expiry from "./pages/Expiry";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +37,8 @@ const App = () => (
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/customers" element={<Customers />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/prescriptions" element={<Prescriptions />} />
+            <Route path="/expiry" element={<Expiry />} />
             <Route path="/sales-recording" element={<SalesRecording />} />
             <Route path="/monthly-report" element={<MonthlyReport />} />
             <Route path="/settings" element={<Settings />} />
