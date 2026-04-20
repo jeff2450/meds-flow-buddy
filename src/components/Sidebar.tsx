@@ -18,6 +18,8 @@ import {
   Wallet,
   BarChart3,
   Receipt,
+  CalendarClock,
+  ScanLine,
 } from "lucide-react";
 
 interface SidebarProps {
