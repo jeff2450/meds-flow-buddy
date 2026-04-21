@@ -246,18 +246,23 @@ const POS = () => {
       const today = new Date().toISOString().split("T")[0];
       const finalPaid = paymentMethod === "credit" ? paidNum : (amountPaid ? paidNum : total);
 
-      const rows = cart.map((c) => ({
-        medicine_id: c.medicine.id,
-        sale_date: today,
-        quantity_sold: c.qty,
-        unit_price: c.price,
-        is_prescription: false,
-        payment_method: paymentMethod,
-        amount_paid: (finalPaid / total) * (c.qty * c.price),
-        balance_due: ((total - finalPaid) / total) * (c.qty * c.price),
-        customer_id: customerId || null,
-        payment_reference: paymentRef || null,
-      }));
+      const rows = cart.map((c) => {
+        const lineGross = c.qty * c.price;
+        const lineNet = Math.max(lineGross - c.discount, 0);
+        const effectiveUnit = c.qty > 0 ? lineNet / c.qty : c.price;
+        return {
+          medicine_id: c.medicine.id,
+          sale_date: today,
+          quantity_sold: c.qty,
+          unit_price: effectiveUnit,
+          is_prescription: false,
+          payment_method: paymentMethod,
+          amount_paid: total > 0 ? (finalPaid / total) * lineNet : 0,
+          balance_due: total > 0 ? ((total - finalPaid) / total) * lineNet : 0,
+          customer_id: customerId || null,
+          payment_reference: paymentRef || null,
+        };
+      });
 
       const { data, error } = await supabase.from("medicine_sales").insert(rows).select("*, medicines(name)");
       if (error) throw error;
@@ -318,10 +323,37 @@ const POS = () => {
             </h1>
             <p className="text-sm text-muted-foreground">Fast selling — search, scan, sell</p>
           </div>
-          <Button variant="outline" onClick={() => setScannerOpen(true)}>
-            <ScanLine className="h-4 w-4 mr-2" />Scan Barcode
-          </Button>
+          <div className="flex items-center gap-2">
+            {heldSales.length > 0 && (
+              <Select onValueChange={resumeSale}>
+                <SelectTrigger className="w-44">
+                  <SelectValue placeholder={`Resume (${heldSales.length})`} />
+                </SelectTrigger>
+                <SelectContent>
+                  {heldSales.map((h) => (
+                    <SelectItem key={h.id} value={h.id}>
+                      {h.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <Button variant="outline" size="sm" onClick={holdSale} disabled={cart.length === 0} title="F6">
+              <Pause className="h-4 w-4 mr-1" />Hold
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setScannerOpen(true)} title="F7">
+              <ScanLine className="h-4 w-4 mr-1" />Scan
+            </Button>
+          </div>
         </header>
+        <div className="px-6 py-1 border-b bg-muted/30 text-xs text-muted-foreground">
+          <kbd className="px-1.5 py-0.5 rounded bg-muted border">F2</kbd> search ·{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-muted border">Enter</kbd> add first match ·{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-muted border">3*name</kbd> qty ·{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-muted border">F4</kbd> checkout ·{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-muted border">F6</kbd> hold ·{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-muted border">F7</kbd> scan
+        </div>
 
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-4 p-4 overflow-hidden">
           {/* Products grid */}
@@ -329,10 +361,12 @@ const POS = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
+                ref={searchRef}
                 autoFocus
-                placeholder="Search medicines..."
+                placeholder="Search medicines... (try '3*paracetamol' then Enter)"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={handleSearchKey}
                 className="pl-9 h-12 text-base"
               />
             </div>
