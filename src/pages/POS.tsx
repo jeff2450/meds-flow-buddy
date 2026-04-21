@@ -99,8 +99,9 @@ const POS = () => {
   });
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return medicines.slice(0, 50);
-    const s = search.toLowerCase();
+    const q = search.replace(/^(\d+)\s*[*x]\s*/i, "").trim();
+    if (!q) return medicines.slice(0, 50);
+    const s = q.toLowerCase();
     return medicines.filter((m) => m.name.toLowerCase().includes(s)).slice(0, 50);
   }, [medicines, search]);
 
