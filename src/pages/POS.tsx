@@ -300,7 +300,32 @@ const POS = () => {
     }
   };
 
-  return (
+  // Keyboard shortcuts
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (document.activeElement?.tagName || "").toLowerCase();
+      const inField = tag === "input" || tag === "textarea" || tag === "select";
+      if (e.key === "F2") {
+        e.preventDefault();
+        searchRef.current?.focus();
+        searchRef.current?.select();
+      } else if (e.key === "F4") {
+        e.preventDefault();
+        if (cart.length > 0 && !submitting) handleCheckout();
+      } else if (e.key === "F6") {
+        e.preventDefault();
+        holdSale();
+      } else if (e.key === "F7") {
+        e.preventDefault();
+        setScannerOpen(true);
+      } else if (e.key === "Escape" && !inField) {
+        setCart([]);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart, total, heldSales, submitting]);
     <div className="min-h-screen bg-background flex">
       <Sidebar
         activeTab="pos"
