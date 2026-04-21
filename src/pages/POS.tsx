@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sidebar } from "@/components/Sidebar";
@@ -63,6 +63,15 @@ const POS = () => {
   const [lastSale, setLastSale] = useState<any>(null);
   const [showReceipt, setShowReceipt] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [heldSales, setHeldSales] = useState<HeldSale[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(HOLD_KEY) || "[]");
+    } catch {
+      return [];
+    }
+  });
+  const searchRef = useRef<HTMLInputElement>(null);
+  const paidRef = useRef<HTMLInputElement>(null);
 
   const { data: medicines = [] } = useQuery({
     queryKey: ["pos-medicines"],
