@@ -14,6 +14,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { RecentSales } from "@/components/RecentSales";
 import { LowStockAlert } from "@/components/LowStockAlert";
 import { ExpiryAlerts } from "@/components/ExpiryAlerts";
+import { SmartInsights } from "@/components/SmartInsights";
 import { Bell, Search, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -166,6 +167,7 @@ const Index = () => {
         return (
           <div className="space-y-6">
             <DashboardStats />
+            <SmartInsights />
             <DashboardCharts />
             <div className="flex gap-6">
               <RecentSales />
