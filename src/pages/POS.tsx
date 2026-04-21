@@ -105,7 +105,7 @@ const POS = () => {
         }
         return prev.map((c) => (c.medicine.id === m.id ? { ...c, qty: c.qty + 1 } : c));
       }
-      return [...prev, { medicine: m, qty: 1, price: m.selling_price || 0 }];
+      return [...prev, { medicine: m, qty: 1, price: m.selling_price || 0, discount: 0 }];
     });
   };
 
