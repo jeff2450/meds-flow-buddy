@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sidebar } from "@/components/Sidebar";
@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Search, Plus, Minus, Trash2, ShoppingCart, Receipt, X, ScanLine } from "lucide-react";
+import { Search, Plus, Minus, Trash2, ShoppingCart, Receipt, X, ScanLine, Pause, Play, Percent } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -29,7 +29,17 @@ interface CartItem {
   medicine: Medicine;
   qty: number;
   price: number;
+  discount: number; // per-line discount in TZS
 }
+
+interface HeldSale {
+  id: string;
+  cart: CartItem[];
+  heldAt: string;
+  label: string;
+}
+
+const HOLD_KEY = "pos_held_sales";
 
 interface Customer {
   id: string;
@@ -53,6 +63,15 @@ const POS = () => {
   const [lastSale, setLastSale] = useState<any>(null);
   const [showReceipt, setShowReceipt] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [heldSales, setHeldSales] = useState<HeldSale[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(HOLD_KEY) || "[]");
+    } catch {
+      return [];
+    }
+  });
+  const searchRef = useRef<HTMLInputElement>(null);
+  const paidRef = useRef<HTMLInputElement>(null);
 
   const { data: medicines = [] } = useQuery({
     queryKey: ["pos-medicines"],
@@ -80,8 +99,9 @@ const POS = () => {
   });
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return medicines.slice(0, 50);
-    const s = search.toLowerCase();
+    const q = search.replace(/^(\d+)\s*[*x]\s*/i, "").trim();
+    if (!q) return medicines.slice(0, 50);
+    const s = q.toLowerCase();
     return medicines.filter((m) => m.name.toLowerCase().includes(s)).slice(0, 50);
   }, [medicines, search]);
 
@@ -95,7 +115,7 @@ const POS = () => {
         }
         return prev.map((c) => (c.medicine.id === m.id ? { ...c, qty: c.qty + 1 } : c));
       }
-      return [...prev, { medicine: m, qty: 1, price: m.selling_price || 0 }];
+      return [...prev, { medicine: m, qty: 1, price: m.selling_price || 0, discount: 0 }];
     });
   };
 
@@ -149,9 +169,66 @@ const POS = () => {
     setCart((prev) => prev.map((c) => (c.medicine.id === id ? { ...c, price } : c)));
   };
 
+  const updateDiscount = (id: string, discount: number) => {
+    setCart((prev) => prev.map((c) => (c.medicine.id === id ? { ...c, discount: Math.max(0, discount) } : c)));
+  };
+
   const removeItem = (id: string) => setCart((prev) => prev.filter((c) => c.medicine.id !== id));
 
-  const total = cart.reduce((sum, c) => sum + c.qty * c.price, 0);
+  // Quick-quantity syntax: "3*paracetamol" or "3x paracetamol"
+  const parseQuickQty = (input: string): { qty: number; query: string } => {
+    const m = input.match(/^(\d+)\s*[*x]\s*(.+)$/i);
+    if (m) return { qty: parseInt(m[1], 10), query: m[2].trim() };
+    return { qty: 1, query: input };
+  };
+  const { qty: quickQty, query: searchQuery } = parseQuickQty(search);
+
+  const handleSearchKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && filtered.length > 0) {
+      e.preventDefault();
+      const m = filtered[0];
+      const addQty = Math.min(quickQty, m.current_stock);
+      setCart((prev) => {
+        const ex = prev.find((c) => c.medicine.id === m.id);
+        if (ex) {
+          const newQty = Math.min(ex.qty + addQty, m.current_stock);
+          return prev.map((c) => (c.medicine.id === m.id ? { ...c, qty: newQty } : c));
+        }
+        return [...prev, { medicine: m, qty: addQty, price: m.selling_price || 0, discount: 0 }];
+      });
+      setSearch("");
+    } else if (e.key === "Escape") {
+      setSearch("");
+    }
+  };
+
+  // Hold / resume
+  const persistHeld = (next: HeldSale[]) => {
+    setHeldSales(next);
+    localStorage.setItem(HOLD_KEY, JSON.stringify(next));
+  };
+  const holdSale = () => {
+    if (cart.length === 0) return;
+    const label = `Hold #${heldSales.length + 1} · ${cart.length} item${cart.length > 1 ? "s" : ""}`;
+    persistHeld([...heldSales, { id: crypto.randomUUID(), cart, heldAt: new Date().toISOString(), label }]);
+    setCart([]);
+    toast({ title: "Sale held", description: label });
+  };
+  const resumeSale = (id: string) => {
+    const h = heldSales.find((x) => x.id === id);
+    if (!h) return;
+    if (cart.length > 0) {
+      toast({ variant: "destructive", title: "Cart not empty", description: "Hold or clear current cart first" });
+      return;
+    }
+    setCart(h.cart);
+    persistHeld(heldSales.filter((x) => x.id !== id));
+  };
+  const deleteHeld = (id: string) => persistHeld(heldSales.filter((x) => x.id !== id));
+
+  const subtotal = cart.reduce((sum, c) => sum + c.qty * c.price, 0);
+  const totalDiscount = cart.reduce((sum, c) => sum + c.discount, 0);
+  const total = Math.max(subtotal - totalDiscount, 0);
   const paidNum = parseFloat(amountPaid) || 0;
   const balance = Math.max(total - paidNum, 0);
 
@@ -169,18 +246,23 @@ const POS = () => {
       const today = new Date().toISOString().split("T")[0];
       const finalPaid = paymentMethod === "credit" ? paidNum : (amountPaid ? paidNum : total);
 
-      const rows = cart.map((c) => ({
-        medicine_id: c.medicine.id,
-        sale_date: today,
-        quantity_sold: c.qty,
-        unit_price: c.price,
-        is_prescription: false,
-        payment_method: paymentMethod,
-        amount_paid: (finalPaid / total) * (c.qty * c.price),
-        balance_due: ((total - finalPaid) / total) * (c.qty * c.price),
-        customer_id: customerId || null,
-        payment_reference: paymentRef || null,
-      }));
+      const rows = cart.map((c) => {
+        const lineGross = c.qty * c.price;
+        const lineNet = Math.max(lineGross - c.discount, 0);
+        const effectiveUnit = c.qty > 0 ? lineNet / c.qty : c.price;
+        return {
+          medicine_id: c.medicine.id,
+          sale_date: today,
+          quantity_sold: c.qty,
+          unit_price: effectiveUnit,
+          is_prescription: false,
+          payment_method: paymentMethod,
+          amount_paid: total > 0 ? (finalPaid / total) * lineNet : 0,
+          balance_due: total > 0 ? ((total - finalPaid) / total) * lineNet : 0,
+          customer_id: customerId || null,
+          payment_reference: paymentRef || null,
+        };
+      });
 
       const { data, error } = await supabase.from("medicine_sales").insert(rows).select("*, medicines(name)");
       if (error) throw error;
@@ -218,6 +300,33 @@ const POS = () => {
     }
   };
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (document.activeElement?.tagName || "").toLowerCase();
+      const inField = tag === "input" || tag === "textarea" || tag === "select";
+      if (e.key === "F2") {
+        e.preventDefault();
+        searchRef.current?.focus();
+        searchRef.current?.select();
+      } else if (e.key === "F4") {
+        e.preventDefault();
+        if (cart.length > 0 && !submitting) handleCheckout();
+      } else if (e.key === "F6") {
+        e.preventDefault();
+        holdSale();
+      } else if (e.key === "F7") {
+        e.preventDefault();
+        setScannerOpen(true);
+      } else if (e.key === "Escape" && !inField) {
+        setCart([]);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart, total, heldSales, submitting]);
+
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar
@@ -241,10 +350,37 @@ const POS = () => {
             </h1>
             <p className="text-sm text-muted-foreground">Fast selling — search, scan, sell</p>
           </div>
-          <Button variant="outline" onClick={() => setScannerOpen(true)}>
-            <ScanLine className="h-4 w-4 mr-2" />Scan Barcode
-          </Button>
+          <div className="flex items-center gap-2">
+            {heldSales.length > 0 && (
+              <Select onValueChange={resumeSale}>
+                <SelectTrigger className="w-44">
+                  <SelectValue placeholder={`Resume (${heldSales.length})`} />
+                </SelectTrigger>
+                <SelectContent>
+                  {heldSales.map((h) => (
+                    <SelectItem key={h.id} value={h.id}>
+                      {h.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <Button variant="outline" size="sm" onClick={holdSale} disabled={cart.length === 0} title="F6">
+              <Pause className="h-4 w-4 mr-1" />Hold
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setScannerOpen(true)} title="F7">
+              <ScanLine className="h-4 w-4 mr-1" />Scan
+            </Button>
+          </div>
         </header>
+        <div className="px-6 py-1 border-b bg-muted/30 text-xs text-muted-foreground">
+          <kbd className="px-1.5 py-0.5 rounded bg-muted border">F2</kbd> search ·{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-muted border">Enter</kbd> add first match ·{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-muted border">3*name</kbd> qty ·{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-muted border">F4</kbd> checkout ·{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-muted border">F6</kbd> hold ·{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-muted border">F7</kbd> scan
+        </div>
 
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-4 p-4 overflow-hidden">
           {/* Products grid */}
@@ -252,10 +388,12 @@ const POS = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
+                ref={searchRef}
                 autoFocus
-                placeholder="Search medicines..."
+                placeholder="Search medicines... (try '3*paracetamol' then Enter)"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={handleSearchKey}
                 className="pl-9 h-12 text-base"
               />
             </div>
@@ -316,7 +454,12 @@ const POS = () => {
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm line-clamp-1">{c.medicine.name}</p>
                             <p className="text-xs text-muted-foreground">
-                              TZS {(c.qty * c.price).toLocaleString()}
+                              TZS {Math.max(c.qty * c.price - c.discount, 0).toLocaleString()}
+                              {c.discount > 0 && (
+                                <span className="line-through ml-1 opacity-60">
+                                  {(c.qty * c.price).toLocaleString()}
+                                </span>
+                              )}
                             </p>
                           </div>
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeItem(c.medicine.id)}>
@@ -340,6 +483,17 @@ const POS = () => {
                             className="h-7 text-xs"
                             placeholder="Price"
                           />
+                          <div className="relative w-20">
+                            <Percent className="absolute left-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                            <Input
+                              type="number"
+                              value={c.discount || ""}
+                              onChange={(e) => updateDiscount(c.medicine.id, parseFloat(e.target.value) || 0)}
+                              className="h-7 text-xs pl-6"
+                              placeholder="0"
+                              title="Line discount (TZS)"
+                            />
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -387,6 +541,18 @@ const POS = () => {
                   onChange={(e) => setAmountPaid(e.target.value)}
                 />
 
+                {totalDiscount > 0 && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>TZS {subtotal.toLocaleString()}</span>
+                  </div>
+                )}
+                {totalDiscount > 0 && (
+                  <div className="flex justify-between text-xs text-success">
+                    <span>Discount</span>
+                    <span>− TZS {totalDiscount.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm pt-1">
                   <span className="text-muted-foreground">Total</span>
                   <span className="font-bold">TZS {total.toLocaleString()}</span>
