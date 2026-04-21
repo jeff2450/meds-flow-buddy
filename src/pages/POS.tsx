@@ -326,6 +326,8 @@ const POS = () => {
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart, total, heldSales, submitting]);
+
+  return (
     <div className="min-h-screen bg-background flex">
       <Sidebar
         activeTab="pos"
