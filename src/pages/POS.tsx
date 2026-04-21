@@ -427,7 +427,12 @@ const POS = () => {
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm line-clamp-1">{c.medicine.name}</p>
                             <p className="text-xs text-muted-foreground">
-                              TZS {(c.qty * c.price).toLocaleString()}
+                              TZS {Math.max(c.qty * c.price - c.discount, 0).toLocaleString()}
+                              {c.discount > 0 && (
+                                <span className="line-through ml-1 opacity-60">
+                                  {(c.qty * c.price).toLocaleString()}
+                                </span>
+                              )}
                             </p>
                           </div>
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeItem(c.medicine.id)}>
@@ -451,6 +456,17 @@ const POS = () => {
                             className="h-7 text-xs"
                             placeholder="Price"
                           />
+                          <div className="relative w-20">
+                            <Percent className="absolute left-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                            <Input
+                              type="number"
+                              value={c.discount || ""}
+                              onChange={(e) => updateDiscount(c.medicine.id, parseFloat(e.target.value) || 0)}
+                              className="h-7 text-xs pl-6"
+                              placeholder="0"
+                              title="Line discount (TZS)"
+                            />
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -498,6 +514,18 @@ const POS = () => {
                   onChange={(e) => setAmountPaid(e.target.value)}
                 />
 
+                {totalDiscount > 0 && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>TZS {subtotal.toLocaleString()}</span>
+                  </div>
+                )}
+                {totalDiscount > 0 && (
+                  <div className="flex justify-between text-xs text-success">
+                    <span>Discount</span>
+                    <span>− TZS {totalDiscount.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm pt-1">
                   <span className="text-muted-foreground">Total</span>
                   <span className="font-bold">TZS {total.toLocaleString()}</span>
