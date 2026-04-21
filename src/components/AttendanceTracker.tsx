@@ -48,9 +48,23 @@ export const AttendanceTracker = () => {
   const handleClockIn = async () => {
     if (!userId) return;
     setLoading(true);
-    
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (profileError || !profile?.organization_id) {
+      toast.error(language === "sw" ? "Imeshindwa kuingia" : "Failed to clock in");
+      console.error(profileError || "Missing organization_id");
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.from("attendance").insert({
       user_id: userId,
+      organization_id: profile.organization_id,
       clock_in: new Date().toISOString(),
     });
 
