@@ -168,9 +168,66 @@ const POS = () => {
     setCart((prev) => prev.map((c) => (c.medicine.id === id ? { ...c, price } : c)));
   };
 
+  const updateDiscount = (id: string, discount: number) => {
+    setCart((prev) => prev.map((c) => (c.medicine.id === id ? { ...c, discount: Math.max(0, discount) } : c)));
+  };
+
   const removeItem = (id: string) => setCart((prev) => prev.filter((c) => c.medicine.id !== id));
 
-  const total = cart.reduce((sum, c) => sum + c.qty * c.price, 0);
+  // Quick-quantity syntax: "3*paracetamol" or "3x paracetamol"
+  const parseQuickQty = (input: string): { qty: number; query: string } => {
+    const m = input.match(/^(\d+)\s*[*x]\s*(.+)$/i);
+    if (m) return { qty: parseInt(m[1], 10), query: m[2].trim() };
+    return { qty: 1, query: input };
+  };
+  const { qty: quickQty, query: searchQuery } = parseQuickQty(search);
+
+  const handleSearchKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && filtered.length > 0) {
+      e.preventDefault();
+      const m = filtered[0];
+      const addQty = Math.min(quickQty, m.current_stock);
+      setCart((prev) => {
+        const ex = prev.find((c) => c.medicine.id === m.id);
+        if (ex) {
+          const newQty = Math.min(ex.qty + addQty, m.current_stock);
+          return prev.map((c) => (c.medicine.id === m.id ? { ...c, qty: newQty } : c));
+        }
+        return [...prev, { medicine: m, qty: addQty, price: m.selling_price || 0, discount: 0 }];
+      });
+      setSearch("");
+    } else if (e.key === "Escape") {
+      setSearch("");
+    }
+  };
+
+  // Hold / resume
+  const persistHeld = (next: HeldSale[]) => {
+    setHeldSales(next);
+    localStorage.setItem(HOLD_KEY, JSON.stringify(next));
+  };
+  const holdSale = () => {
+    if (cart.length === 0) return;
+    const label = `Hold #${heldSales.length + 1} · ${cart.length} item${cart.length > 1 ? "s" : ""}`;
+    persistHeld([...heldSales, { id: crypto.randomUUID(), cart, heldAt: new Date().toISOString(), label }]);
+    setCart([]);
+    toast({ title: "Sale held", description: label });
+  };
+  const resumeSale = (id: string) => {
+    const h = heldSales.find((x) => x.id === id);
+    if (!h) return;
+    if (cart.length > 0) {
+      toast({ variant: "destructive", title: "Cart not empty", description: "Hold or clear current cart first" });
+      return;
+    }
+    setCart(h.cart);
+    persistHeld(heldSales.filter((x) => x.id !== id));
+  };
+  const deleteHeld = (id: string) => persistHeld(heldSales.filter((x) => x.id !== id));
+
+  const subtotal = cart.reduce((sum, c) => sum + c.qty * c.price, 0);
+  const totalDiscount = cart.reduce((sum, c) => sum + c.discount, 0);
+  const total = Math.max(subtotal - totalDiscount, 0);
   const paidNum = parseFloat(amountPaid) || 0;
   const balance = Math.max(total - paidNum, 0);
 
