@@ -11,7 +11,6 @@ import {
   LogOut,
   Activity,
   Users,
-  FileText,
   Plus,
   Truck,
   PackagePlus,
