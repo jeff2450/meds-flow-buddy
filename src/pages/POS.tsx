@@ -241,6 +241,28 @@ const POS = () => {
       toast({ variant: "destructive", title: "Customer required", description: "Select a customer for credit sale" });
       return;
     }
+    const zeroPriceItem = cart.find((c) => !c.price || c.price <= 0);
+    if (zeroPriceItem) {
+      toast({
+        variant: "destructive",
+        title: "Missing price",
+        description: `Set a selling price greater than 0 for "${zeroPriceItem.medicine.name}" before checkout.`,
+      });
+      return;
+    }
+    const zeroEffective = cart.find((c) => {
+      const lineNet = Math.max(c.qty * c.price - c.discount, 0);
+      const eff = c.qty > 0 ? lineNet / c.qty : c.price;
+      return eff <= 0;
+    });
+    if (zeroEffective) {
+      toast({
+        variant: "destructive",
+        title: "Discount too high",
+        description: `Discount on "${zeroEffective.medicine.name}" makes the unit price 0. Reduce the discount.`,
+      });
+      return;
+    }
     setSubmitting(true);
     try {
       const today = new Date().toISOString().split("T")[0];
