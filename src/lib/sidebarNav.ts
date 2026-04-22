@@ -9,7 +9,6 @@ export const ROUTE_MAP: Record<string, string> = {
   customers: "/customers",
   settings: "/settings",
   reports: "/monthly-report",
-  prescriptions: "/prescriptions",
   expiry: "/expiry",
 };
 
