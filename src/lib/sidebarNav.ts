@@ -4,7 +4,6 @@ export const ROUTE_MAP: Record<string, string> = {
   dashboard: "/",
   pos: "/pos",
   suppliers: "/suppliers",
-  purchases: "/purchases",
   expenses: "/expenses",
   customers: "/customers",
   settings: "/settings",

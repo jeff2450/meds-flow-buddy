@@ -53,7 +53,6 @@ export const Sidebar = ({
 
   const adminItems = [
     { id: "suppliers", label: "Suppliers", icon: Truck },
-    { id: "purchases", label: "Purchases", icon: PackagePlus },
     { id: "expiry", label: "Expiry & Batches", icon: CalendarClock },
     { id: "expenses", label: "Expenses", icon: Wallet },
     { id: "reports", label: language === "sw" ? "Ripoti ya Mwezi" : "Monthly Report", icon: FileText },
