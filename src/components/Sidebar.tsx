@@ -11,7 +11,6 @@ import {
   LogOut,
   Activity,
   Users,
-  FileText,
   Plus,
   Truck,
   PackagePlus,
@@ -20,6 +19,7 @@ import {
   Receipt,
   CalendarClock,
   ScanLine,
+  FileText,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -47,7 +47,6 @@ export const Sidebar = ({
     { id: "pos", label: "POS", icon: Receipt },
     { id: "inventory", label: t("inventory"), icon: Package },
     { id: "sales", label: t("salesLabel"), icon: ShoppingCart },
-    { id: "prescriptions", label: "Prescriptions", icon: FileText },
     { id: "customers", label: "Customers", icon: Users },
     { id: "stock-intake", label: t("stockIntake"), icon: ClipboardList },
   ];
