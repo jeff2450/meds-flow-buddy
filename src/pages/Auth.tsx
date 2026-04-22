@@ -246,7 +246,7 @@ export default function Auth() {
               <Pill className="h-8 w-8 text-white" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Pharmaceutical Inventory</CardTitle>
+          <CardTitle className="text-2xl">DawaTrack</CardTitle>
           <CardDescription>Select your role to continue</CardDescription>
           
           {/* Online/Offline Status */}
