@@ -17,9 +17,9 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "placeholder.svg"],
       manifest: {
-        name: "Pharmaceutical Inventory",
-        short_name: "PharmInventory",
-        description: "Professional pharmaceutical inventory management system",
+        name: "DawaTrack - Pharmacy Inventory & POS",
+        short_name: "DawaTrack",
+        description: "DawaTrack: fast offline-first pharmacy inventory and POS system.",
         theme_color: "#0f172a",
         background_color: "#0f172a",
         display: "standalone",

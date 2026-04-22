@@ -3,7 +3,7 @@ export type Language = "en" | "sw";
 export const translations = {
   en: {
     // Header
-    appTitle: "Pharmaceutical Inventory",
+    appTitle: "DawaTrack",
     appSubtitle: "Manage your medicine stock efficiently",
     monthlyReport: "Monthly Report",
     recordSales: "Record Sales",
@@ -277,7 +277,7 @@ export const translations = {
   },
   sw: {
     // Header
-    appTitle: "Hesabu ya Dawa",
+    appTitle: "DawaTrack",
     appSubtitle: "Simamia hisa yako ya dawa kwa ufanisi",
     monthlyReport: "Ripoti ya Mwezi",
     recordSales: "Rekodi Mauzo",
