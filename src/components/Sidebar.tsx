@@ -56,6 +56,7 @@ export const Sidebar = ({
     { id: "purchases", label: "Purchases", icon: PackagePlus },
     { id: "expiry", label: "Expiry & Batches", icon: CalendarClock },
     { id: "expenses", label: "Expenses", icon: Wallet },
+    { id: "reports", label: language === "sw" ? "Ripoti ya Mwezi" : "Monthly Report", icon: FileText },
     { id: "attendance", label: t("attendance"), icon: Users },
     { id: "users", label: t("userManagement"), icon: Settings },
     { id: "settings", label: language === "sw" ? "Mipangilio" : "Settings", icon: Settings },
