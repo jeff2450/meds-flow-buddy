@@ -7,6 +7,7 @@ import { SalesTable } from "@/components/SalesTable";
 import { SalesRecordDialog } from "@/components/SalesRecordDialog";
 import UserManagement from "@/components/UserManagement";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { SyncStatus } from "@/components/SyncStatus";
 import { AttendanceTracker } from "@/components/AttendanceTracker";
 import { AttendanceManagement } from "@/components/AttendanceManagement";
@@ -279,7 +280,10 @@ const Index = () => {
               
               {/* Language Switch */}
               <LanguageSwitch />
-              
+
+              {/* Theme Toggle */}
+              <ThemeToggle />
+
               {/* Notifications */}
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
