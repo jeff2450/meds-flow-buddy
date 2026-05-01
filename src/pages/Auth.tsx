@@ -295,85 +295,39 @@ export default function Auth() {
             </div>
           </div>
 
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup" disabled={!online}>Sign Up</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
-                {!online && (
-                  <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground">
-                    <p className="font-medium mb-1">Offline Login</p>
-                    <p>Use your previously cached credentials to sign in.</p>
-                  </div>
-                )}
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input
-                    id="login-email"
-                    name="login-email"
-                    type="email"
-                    placeholder={selectedRole === "admin" ? "admin@pharmacy.com" : "staff@pharmacy.com"}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
-                  <Input
-                    id="login-password"
-                    name="login-password"
-                    type="password"
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Signing in..." : `Sign In as ${selectedRole === 'admin' ? 'Admin' : 'Staff'}`}
-                </Button>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground mb-2">
-                  <p>New accounts are automatically assigned Staff role. Contact an admin for Admin access.</p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
-                  <Input
-                    id="signup-name"
-                    name="signup-name"
-                    type="text"
-                    placeholder="John Doe"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    name="signup-email"
-                    type="email"
-                    placeholder="staff@pharmacy.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    name="signup-password"
-                    type="password"
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Creating account..." : "Create Staff Account"}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+          <form onSubmit={handleLogin} className="space-y-4">
+            {!online && (
+              <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground">
+                <p className="font-medium mb-1">Offline Login</p>
+                <p>Use your previously cached credentials to sign in.</p>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="login-email">Email</Label>
+              <Input
+                id="login-email"
+                name="login-email"
+                type="email"
+                placeholder={selectedRole === "admin" ? "admin@pharmacy.com" : "staff@pharmacy.com"}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="login-password">Password</Label>
+              <Input
+                id="login-password"
+                name="login-password"
+                type="password"
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Signing in..." : `Sign In as ${selectedRole === 'admin' ? 'Admin' : 'Staff'}`}
+            </Button>
+            <p className="text-xs text-center text-muted-foreground pt-2">
+              New accounts can only be created by an administrator.
+            </p>
+          </form>
         </CardContent>
       </Card>
     </div>

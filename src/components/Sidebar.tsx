@@ -48,7 +48,7 @@ export const Sidebar = ({
     { id: "inventory", label: t("inventory"), icon: Package },
     { id: "sales", label: t("salesLabel"), icon: ShoppingCart },
     { id: "customers", label: "Customers", icon: Users },
-    { id: "stock-intake", label: t("stockIntake"), icon: ClipboardList },
+    ...(showAdminTabs ? [] : [{ id: "stock-intake", label: t("stockIntake"), icon: ClipboardList }]),
   ];
 
   const adminItems = [
