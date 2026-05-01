@@ -178,65 +178,6 @@ export default function Auth() {
     }
   };
 
-  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    if (!online) {
-      toast({
-        variant: "destructive",
-        title: "Internet required",
-        description: "You need to be online to create a new account.",
-      });
-      return;
-    }
-    
-    setLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("signup-email") as string;
-    const password = formData.get("signup-password") as string;
-    const fullName = formData.get("signup-name") as string;
-
-    try {
-      emailSchema.parse(email);
-      passwordSchema.parse(password);
-
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            full_name: fullName,
-          },
-        },
-      });
-
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Signup failed",
-          description: error.message,
-        });
-      } else {
-        toast({
-          title: "Account created",
-          description: "You've been assigned as a Staff member. Contact an admin for Admin access.",
-        });
-      }
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast({
-          variant: "destructive",
-          title: "Validation error",
-          description: error.errors[0].message,
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-md">
