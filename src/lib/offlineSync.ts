@@ -5,12 +5,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
 const DB_NAME = 'pharm_offline_sync';
-const DB_VERSION = 2; // Upgraded to add new stores
+const DB_VERSION = 3; // v3 adds the failed operations (conflict) store
 const QUEUE_STORE = 'pending_operations';
 const CACHE_STORE = 'cached_data';
 const SALES_STORE = 'offline_sales';
 const MEDICINES_STORE = 'offline_medicines';
 const STOCK_STORE = 'offline_stock_transactions';
+const FAILED_STORE = 'failed_operations';
 
 export type OperationType = 'sale' | 'transaction' | 'medicine' | 'adjustment';
 
@@ -109,6 +110,12 @@ function openDB(): Promise<IDBDatabase> {
         stockStore.createIndex('transaction_date', 'transaction_date', { unique: false });
         stockStore.createIndex('synced', 'synced', { unique: false });
         stockStore.createIndex('medicine_id', 'medicine_id', { unique: false });
+      }
+
+      // Failed operations (conflicts needing user resolution)
+      if (!db.objectStoreNames.contains(FAILED_STORE)) {
+        const failedStore = db.createObjectStore(FAILED_STORE, { keyPath: 'id' });
+        failedStore.createIndex('failedAt', 'failedAt', { unique: false });
       }
     };
   });
