@@ -1214,6 +1214,7 @@ export type Database = {
       }
     }
     Functions: {
+      create_organization: { Args: { _name: string }; Returns: string }
       get_next_folio_number: { Args: never; Returns: number }
       get_user_list_for_admin: {
         Args: never
