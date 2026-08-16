@@ -5,12 +5,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
 const DB_NAME = 'pharm_offline_sync';
-const DB_VERSION = 2; // Upgraded to add new stores
+const DB_VERSION = 3; // v3 adds the failed operations (conflict) store
 const QUEUE_STORE = 'pending_operations';
 const CACHE_STORE = 'cached_data';
 const SALES_STORE = 'offline_sales';
 const MEDICINES_STORE = 'offline_medicines';
 const STOCK_STORE = 'offline_stock_transactions';
+const FAILED_STORE = 'failed_operations';
 
 export type OperationType = 'sale' | 'transaction' | 'medicine' | 'adjustment';
 
