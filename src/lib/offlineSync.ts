@@ -111,6 +111,12 @@ function openDB(): Promise<IDBDatabase> {
         stockStore.createIndex('synced', 'synced', { unique: false });
         stockStore.createIndex('medicine_id', 'medicine_id', { unique: false });
       }
+
+      // Failed operations (conflicts needing user resolution)
+      if (!db.objectStoreNames.contains(FAILED_STORE)) {
+        const failedStore = db.createObjectStore(FAILED_STORE, { keyPath: 'id' });
+        failedStore.createIndex('failedAt', 'failedAt', { unique: false });
+      }
     };
   });
 }
